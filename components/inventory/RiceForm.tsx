@@ -26,7 +26,9 @@ export default function RiceForm() {
         action={async (prevState, formData) => {
           const result = await addRiceItem(prevState, formData);
           // Only clear if success
-          result.message.toLowerCase().includes('"result": "success"') && formRef.current?.reset();
+          if (result.message.toLowerCase().includes('"result": "success"')) {
+            formRef.current?.reset();
+          }
           return result;
         }}
       >

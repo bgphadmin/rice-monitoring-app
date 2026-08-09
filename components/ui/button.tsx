@@ -1,6 +1,5 @@
-import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
-
+import { Slot } from '@radix-ui/react-slot';
 import { cn } from "@/lib/utils"
 import React from "react";
 
@@ -39,6 +38,30 @@ const buttonVariants = cva(
   }
 )
 
+export interface ButtonProps
+  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean;
+}
+
+const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ className, variant, size, asChild = false, ...props }, ref) => {
+    const Comp = asChild ? Slot : 'button';
+    return (
+      <Comp
+        className={cn(buttonVariants({ variant, size, className }))}
+        ref={ref}
+        {...props}
+      />
+    );
+  }
+);
+Button.displayName = 'Button';
+
+export { Button, buttonVariants };
+
+
+
 // const Button = ({
 //   className,
 //   variant = "default",
@@ -54,23 +77,23 @@ const buttonVariants = cva(
 //   )
 // }
 
-const Button = React.forwardRef<
-  HTMLButtonElement,
-  ButtonPrimitive.Props & VariantProps<typeof buttonVariants>
->(
-  (
-    { className, variant = "default", size = "default", ...props },
-    ref
-  ) => {
-    return (
-      <ButtonPrimitive
-        ref={ref} // forward the ref here
-        data-slot="button"
-        className={cn(buttonVariants({ variant, size, className }))}
-        {...props}
-      />
-    );
-  }
-);
+// const Button = React.forwardRef<
+//   HTMLButtonElement,
+//   ButtonPrimitive.Props & VariantProps<typeof buttonVariants>
+// >(
+//   (
+//     { className, variant = "default", size = "default", ...props },
+//     ref
+//   ) => {
+//     return (
+//       <ButtonPrimitive
+//         ref={ref} // forward the ref here
+//         data-slot="button"
+//         className={cn(buttonVariants({ variant, size, className }))}
+//         {...props}
+//       />
+//     );
+//   }
+// );
 
-export { Button, buttonVariants }
+// export { Button, buttonVariants }

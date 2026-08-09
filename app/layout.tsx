@@ -1,6 +1,5 @@
 
 import type { Metadata } from "next";
-// @ts-expect-error: CSS side-effect import declaration not found in this environment
 import "./globals.css";
 import { Toaster } from "react-hot-toast"
 import LinksDropdown from "@/components/utils/LinksDropdown";

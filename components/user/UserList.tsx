@@ -8,12 +8,12 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
 import { EditUserItem } from "./EditUserItem";
+import { User } from "@prisma/client";
 
-export default function UserList({ users }: { users: any[] }) {
+export default function UserList({ users }: { users: User[] }) {
     const [filter, setFilter] = useState("");
 
     const filteredUsers = users.filter(
@@ -56,7 +56,7 @@ export default function UserList({ users }: { users: any[] }) {
                                     id: user.id,
                                     firstName: user.firstName,
                                     lastName: user.lastName,
-                                    employeeId: user.employeeId,
+                                    employeeId: user.employeeId ?? "",
                                     role: user.role
                                 }} />
                             </TableCell>

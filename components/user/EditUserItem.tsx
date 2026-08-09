@@ -11,7 +11,7 @@ import {
     AlertDialogFooter,
     AlertDialogCancel,
 } from "@/components/ui/alert-dialog"; // shadcn/ui import
-import { editRiceItemAction, editUserItemAction } from "@/utils/actions";
+import { editUserItemAction } from "@/utils/actions";
 import { Button } from "../ui/button";
 
 export function EditUserItem({ item }: { item: { id: string; firstName: string; lastName: string; employeeId: string; role: string } }) {
@@ -60,7 +60,6 @@ export function EditUserItem({ item }: { item: { id: string; firstName: string; 
                         defaultValue={item.employeeId}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
-                    // create a dropdown for role
                     <label className="block text-sm font-medium text-gray-700">Role</label>
                     <select
                         name="role"
