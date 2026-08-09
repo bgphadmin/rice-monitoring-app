@@ -1,0 +1,65 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPERUSER
+}
+
+model User {
+  id               String                 @id @default(uuid())
+  clerkId          String                 @unique
+  email            String                 @unique
+  firstName        String
+  lastName         String
+  employeeId       String?                @unique
+  role             Role                   @default(USER)
+  createdAt        DateTime               @default(now())
+  updatedAt        DateTime               @updatedAt
+  // Relations
+  riceAdded        Rice[]                 @relation("RiceAddedBy")
+  distributionLogs EmployeeDistribution[] @relation("DistributionCreatedBy")
+}
+
+model Rice {
+  id            String                 @id @default(uuid())
+  name          String                 @unique
+  stockKg       Decimal                @db.Decimal(10, 2)
+  reorderLevel  Decimal                @db.Decimal(10, 2)
+  comment       String?
+  pricePerKilo  Decimal?               @db.Decimal(10, 2)
+  updatedAt     DateTime               @updatedAt
+  addedBy       User                   @relation("RiceAddedBy", fields: [addedById], references: [clerkId])
+  addedById     String
+  distributions EmployeeDistribution[]
+}
+
+model EmployeeDistribution {
+  id          String   @id @default(uuid())
+  firstName   String
+  lastName    String
+  employeeId  String
+  rice        Rice     @relation(fields: [riceId], references: [id])
+  riceId      String
+  quantityKg  Int
+  comment     String?
+  dateGiven   DateTime @default(now())
+  // User who created this distribution entry
+  createdBy   User     @relation("DistributionCreatedBy", fields: [createdById], references: [id])
+  createdById String
+  imageUrl    String?
+}

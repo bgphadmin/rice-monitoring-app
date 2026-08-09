@@ -1,0 +1,47 @@
+[
+  {
+    "id": "c1a2b3c4-d5e6-7890-abcd-ef1234567890",
+    "email": "admin1@example.com",
+    "password": "$2b$10$hashedpassword1",
+    "firstName": "Alice",
+    "lastName": "Admin",
+    "role": "ADMIN",
+    "employeeId": "ADM-001"
+  },
+  {
+    "id": "d2b3c4d5-e6f7-8901-bcde-f23456789012",
+    "email": "admin2@example.com",
+    "password": "$2b$10$hashedpassword2",
+    "firstName": "Bob",
+    "lastName": "Manager",
+    "role": "ADMIN",
+    "employeeId": "ADM-002"
+  },
+  {
+    "id": "e3c4d5e6-f7g8-9012-cdef-345678901234",
+    "email": "employee1@example.com",
+    "password": "$2b$10$hashedpassword3",
+    "firstName": "Charlie",
+    "lastName": "Employee",
+    "role": "USER",
+    "employeeId": "EMP-1001"
+  },
+  {
+    "id": "f4d5e6f7-g8h9-0123-def0-456789012345",
+    "email": "employee2@example.com",
+    "password": "$2b$10$hashedpassword4",
+    "firstName": "Diana",
+    "lastName": "Worker",
+    "role": "USER",
+    "employeeId": "EMP-1002"
+  },
+  {
+    "id": "a5e6f7g8-h9i0-1234-ef01-567890123456",
+    "email": "employee3@example.com",
+    "password": "$2b$10$hashedpassword5",
+    "firstName": "Ethan",
+    "lastName": "Staff",
+    "role": "USER",
+    "employeeId": "EMP-1003"
+  }
+]

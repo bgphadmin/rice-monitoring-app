@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Jasmine Rice",
+    "stockKg": 120,
+    "reorderLevel": 200,
+    "addedById": "c1a2b3c4-d5e6-7890-abcd-ef1234567890"
+  },
+  {
+    "name": "Brown Rice",
+    "stockKg": 75,
+    "reorderLevel": 100,
+    "addedById": "c1a2b3c4-d5e6-7890-abcd-ef1234567890"
+  },
+  {
+    "name": "Basmati Rice",
+    "stockKg": 300,
+    "reorderLevel": 150,
+    "addedById": "c1a2b3c4-d5e6-7890-abcd-ef1234567890"
+  },
+  {
+    "name": "Sticky Rice",
+    "stockKg": 450,
+    "reorderLevel": 250,
+    "addedById": "c1a2b3c4-d5e6-7890-abcd-ef1234567890"
+  },
+  {
+    "name": "Red Rice",
+    "stockKg": 200,
+    "reorderLevel": 120,
+    "addedById": "c1a2b3c4-d5e6-7890-abcd-ef1234567890"
+  },
+  {
+    "name": "Black Rice",
+    "stockKg": 90,
+    "reorderLevel": 80,
+    "addedById": "c1a2b3c4-d5e6-7890-abcd-ef1234567890"
+  }
+]

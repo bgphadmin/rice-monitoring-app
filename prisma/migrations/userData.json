@@ -1,0 +1,32 @@
+[
+  {
+    "email": "admin1@example.com",
+    "password": "$2b$10$hashedpassword1", 
+    "name": "Alice Admin",
+    "role": "ADMIN"
+  },
+  {
+    "email": "admin2@example.com",
+    "password": "$2b$10$hashedpassword2",
+    "name": "Bob Manager",
+    "role": "ADMIN"
+  },
+  {
+    "email": "employee1@example.com",
+    "password": "$2b$10$hashedpassword3",
+    "name": "Charlie Employee",
+    "role": "USER"
+  },
+  {
+    "email": "employee2@example.com",
+    "password": "$2b$10$hashedpassword4",
+    "name": "Diana Worker",
+    "role": "USER"
+  },
+  {
+    "email": "employee3@example.com",
+    "password": "$2b$10$hashedpassword5",
+    "name": "Ethan Staff",
+    "role": "USER"
+  }
+]
