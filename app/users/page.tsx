@@ -14,7 +14,7 @@ const UsersPage = async () => {
 
   return (
     <section className="space-y-8">
-      <h2 className="text-2xl font-bold text-green-700">Rice Inventory</h2>
+      <h2 className="text-2xl font-bold text-green-700">App Users</h2>
       <Suspense fallback={<SkeletonTable />}>
         <UserList users={users} />
       </Suspense>

@@ -97,7 +97,7 @@ const columns: ColumnDef<typeof features, DistributionRow>[] = [
     },
     {
         id: "createdBy",
-        header: "Created By",
+        header: "Entered By",
         accessorFn: (row: DistributionRow) => `${row.createdBy.firstName} ${row.createdBy.lastName}`,
     },
 ]
