@@ -59,7 +59,7 @@ model EmployeeDistribution {
   comment     String?
   dateGiven   DateTime @default(now())
   // User who created this distribution entry
-  createdBy   User     @relation("DistributionCreatedBy", fields: [createdById], references: [id])
+  createdBy   User     @relation("DistributionCreatedBy", fields: [createdById], references: [clerkId])
   createdById String
   imageUrl    String?
 }

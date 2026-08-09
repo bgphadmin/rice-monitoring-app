@@ -132,12 +132,17 @@ export async function editUserItemAction(id: string, formData: FormData): Promis
 
 
 /* ------------------ Distribution Actions ------------------ */
-// export async function getDistributions() {
-//   return db.employeeDistribution.findMany({
-//     include: { employee: true, rice: true, createdBy: true },
-//     orderBy: { dateGiven: "desc" },
-//   });
-// }
+export async function getDistributions() {
+  return db.employeeDistribution.findMany({
+    include: {
+      rice: true,
+      createdBy: true,
+    },
+    orderBy: {
+      dateGiven: "desc",
+    },
+  })
+}
 
 // export async function addDistribution({
 //   employeeId,

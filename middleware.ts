@@ -1,9 +1,4 @@
-
-
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
-import { NextResponse } from 'next/server';
-import db from './utils/db';
-
 
 const isPublicRoute = createRouteMatcher(['/', 'about']);
 const isAdminRoute = createRouteMatcher(['/inventory', '/distributions']);

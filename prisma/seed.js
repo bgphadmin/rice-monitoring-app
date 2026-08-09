@@ -4,11 +4,11 @@ const prisma = new PrismaClient();
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 // const userData = require("./userData.json");
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const data = require("./riceData.json");
+const data = require("./distributionData.json");
 
 async function main() {
   for (const datum of data) {
-    await prisma.rice.create({
+    await prisma.employeeDistribution.create({
       data: datum,
     });
   }
