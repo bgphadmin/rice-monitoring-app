@@ -2,6 +2,7 @@
 
 import db from "@/utils/db";
 import { riceSchema } from "./validation/riceSchema";
+import { distributionSchema } from "./validation/distributionSchema";
 import { revalidatePath } from "next/cache";
 import { userSchema } from "./validation/userSchema";
 import { auth } from "@clerk/nextjs/server";
@@ -16,7 +17,14 @@ export const renderError = (error: unknown): { message: string, result: string }
 };
 
 export async function getRiceItems() {
-  return db.rice.findMany({ orderBy: { name: "asc" } });
+  return db.rice.findMany({ 
+    include: {
+      addedBy: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
 }
 
 export const addRiceItem = async (
@@ -28,19 +36,26 @@ export const addRiceItem = async (
   try {
     const rawData = Object.fromEntries(formData);
     const validatedFields = riceSchema.parse(rawData);
-    await db.rice.create({
+    const inventory = await db.rice.create({
       data: {
         ...validatedFields,
         addedById: userId || "", 
       },
+      include: {
+        addedBy: true,
+      },
     });
-    revalidatePath('/inventory');
-    return { message: '[{"message": "Rice item added successfully"}, {"result": "success"} ]' };
+
+    revalidatePath("/inventory");
+    return {
+      message: JSON.stringify([
+        { message: "Rice item added successfully" },
+        { result: "success" },
+        { inventory },
+      ]),
+    };
   } catch (error: any) {
-    console.error('Error adding rice item 5:', error.code);
-    if (error.code === 'P2002') {
-      return { message: '[{"message": "Rice item with this name already exists"}, {"result": "error"} ]' };
-    }
+    console.error("Error adding distribution:", error);
     return renderError(error);
   }
 };
@@ -65,16 +80,26 @@ export async function editRiceItemAction(id: string, formData: FormData): Promis
 }
 
 
-export async function deleteRiceItemAction(id: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteRiceItemAction(
+  _prevState: unknown,
+  formData: FormData
+): Promise<{ message: string }> {
   try {
+    const raw = Object.fromEntries(formData) as Record<string, any>;
+    const id = raw.id as string | undefined;
+
+    if (!id) {
+      return { message: '[{"message": "Missing id"}, {"result": "error"}]' };
+    }
+
     await db.rice.delete({
       where: { id },
     });
     revalidatePath("/inventory");
-    return { success: true };
+    return { message: '[{"message": "Rice item deleted successfully"}, {"result": "success"}]' };
   } catch (err: any) {
     console.error("Delete error:", err);
-    return { success: false, error: "Failed to delete rice item" };
+    return renderError(err);
   }
 }
 
@@ -142,6 +167,55 @@ export async function getDistributions() {
       dateGiven: "desc",
     },
   })
+}
+
+export async function addDistributionAction(
+  prevState: unknown,
+  formData: FormData
+): Promise<{ message: string }> {
+  const { userId } = auth();
+
+  try {
+    const rawData = Object.fromEntries(formData);
+    const validatedFields = distributionSchema.parse(rawData);
+
+    const riceRecord = await db.rice.findUnique({
+      where: { name: validatedFields.riceName },
+    });
+
+    if (!riceRecord) {
+      return { message: '[{"message": "Rice variety not found"}, {"result": "error"}]' };
+    }
+
+    const distribution = await db.employeeDistribution.create({
+      data: {
+        firstName: validatedFields.firstName,
+        lastName: validatedFields.lastName,
+        employeeId: validatedFields.employeeId,
+        riceId: riceRecord.id,
+        quantityKg: validatedFields.quantityKg,
+        comment: validatedFields.comment,
+        dateGiven: new Date(`${validatedFields.dateGiven}T00:00:00.000Z`),
+        createdById: userId || "",
+      },
+      include: {
+        rice: true,
+        createdBy: true,
+      },
+    });
+
+    revalidatePath("/distribution");
+    return {
+      message: JSON.stringify([
+        { message: "Distribution added successfully" },
+        { result: "success" },
+        { distribution },
+      ]),
+    };
+  } catch (error: any) {
+    console.error("Error adding distribution:", error);
+    return renderError(error);
+  }
 }
 
 // export async function addDistribution({

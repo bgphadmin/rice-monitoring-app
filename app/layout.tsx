@@ -26,7 +26,7 @@ export default async function RootLayout({
         <body className="bg-gray-50 text-gray-900">
           <header className="border-b bg-white shadow-sm">
             <nav className="container mx-auto flex flex-wrap items-center justify-between p-4">
-              <Link href="/" className="text-xl font-bold text-green-700">Rice Monitoring App</Link>
+              <Link href="/" className="text-xl font-bold text-slate-700">Rice Monitoring App</Link>
               <SignedIn>
                 <div className="hidden md:flex space-x-4">
                   <Link href="/dashboard" className="hover:text-green-600">Dashboard</Link>

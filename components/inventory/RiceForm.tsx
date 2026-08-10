@@ -32,22 +32,27 @@ export default function RiceForm() {
           return result;
         }}
       >
-        <div className='grid gap-4 md:grid-cols-3 my-4'>
-          <FormTextInput
-            type='text'
-            name='name'
-            label='Rice Variety'
-          />
-          <FormStockAndReorderInput fieldName='stockKg' />
-          <FormStockAndReorderInput fieldName='reorderLevel' />
-          <FormTextInput
-            type='text'
-            name='comment'
-            label='Comment'
-            placeholder="e.g. price per kilo"
-          />
-        </div>
-        <SubmitButton text='Save' className={buttonClass} reloadLabel="Saving..." />
+        {/* {({ loading }) => ( */}
+        {() => (
+          <>
+            <div className='grid gap-4 md:grid-cols-3 my-4'>
+              <FormTextInput
+                type='text'
+                name='name'
+                label='Rice Variety'
+              />
+              <FormStockAndReorderInput fieldName='stockKg' />
+              <FormStockAndReorderInput fieldName='reorderLevel' />
+              <FormTextInput
+                type='text'
+                name='comment'
+                label='Comment'
+                placeholder="e.g. price per kilo"
+              />
+            </div>
+            <SubmitButton text='Save' className={buttonClass} reloadLabel="Saving..." />
+          </>
+        )}
       </FormContainer>
     </div >
   );

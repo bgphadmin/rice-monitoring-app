@@ -1,30 +1,13 @@
 "use client";
 
 import { deleteRiceItemAction } from "@/utils/actions";
-import toast from "react-hot-toast";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
+import { AlertDialog, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "../ui/alert-dialog";
 import FormContainer from "../utils/FormContainer";
+import LoadingButton from "../utils/LoadingButton";
 import { Button } from "../ui/button";
 
 export function DeleteRiceItem({ id, riceName }: { id: string; riceName?: string }) {
-    const handleDelete = async () => {
-        try {
-            const result = await deleteRiceItemAction(id);
-            if (result.success) {
-                toast.success("Rice item deleted successfully!");
-                return { message: "Rice item deleted successfully!" };
-            } else {
-                const errorMessage = result.error || "Error deleting rice item";
-                toast.error(errorMessage);
-                return { message: errorMessage };
-            }
-        } catch (error) {
-            console.error("Error deleting rice item:", error);
-            const errorMessage = "Error deleting rice item";
-            toast.error(errorMessage);
-            return { message: errorMessage };
-        }
-    };
+    // deletion handled by server action via FormContainer
 
     return (
         <AlertDialog>
@@ -40,16 +23,20 @@ export function DeleteRiceItem({ id, riceName }: { id: string; riceName?: string
                         Are you sure you want to delete this rice item? This action cannot be undone.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
-                <FormContainer action={handleDelete}>
-                    <AlertDialogFooter className="flex flex-row gap-2">
-                        <AlertDialogCancel className="flex-1 rounded-md bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300">
-                            Cancel
-                        </AlertDialogCancel>
-                        <AlertDialogAction type="submit" className="flex-1 rounded-md bg-red-600 px-4 py-2 text-white hover:bg-red-700 focus:ring-2 focus:ring-red-500"
-                        >
-                            Delete
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
+                <FormContainer action={deleteRiceItemAction}>
+                    {({ loading }) => (
+                        <>
+                            <input type="hidden" name="id" value={id} />
+                            <AlertDialogFooter className="flex flex-row gap-2">
+                                <AlertDialogCancel className="flex-1 rounded-md bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300">
+                                    Cancel
+                                </AlertDialogCancel>
+                                <LoadingButton loading={loading}>
+                                    Delete
+                                </LoadingButton>
+                            </AlertDialogFooter>
+                        </>
+                    )}
                 </FormContainer>
             </AlertDialogContent>
         </AlertDialog>

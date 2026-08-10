@@ -1,9 +1,17 @@
-import DistributionGrid, { DistributionRow } from "@/components/distribution/DistributionGrid"
-import { getDistributions } from "@/utils/actions"
+import dynamic from "next/dynamic"
+import type { DistributionRow } from "@/components/distribution/DistributionGrid"
+import { getDistributions, getRiceItems } from "@/utils/actions"
 import SkeletonTable from "@/components/utils/SkeletonTable"
-import { Suspense } from "react"
 import verifyUser from "@/utils/userValidation"
 import { redirect } from "next/navigation"
+
+const DistributionManager = dynamic(
+    () => import("@/components/distribution/DistributionManager"),
+    {
+        ssr: false,
+        loading: () => <SkeletonTable />,
+    }
+)
 
 
 const DistributionPage = async () => {
@@ -12,6 +20,7 @@ const DistributionPage = async () => {
     if (!isSuperuser && !isAdmin) return redirect('/');
 
     const distributions = await getDistributions()
+    const riceItems = await getRiceItems()
 
     const rows: DistributionRow[] = distributions.map((record) => ({
         id: record.id,
@@ -32,18 +41,10 @@ const DistributionPage = async () => {
 
     return (
         <section className="space-y-8">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <h2 className="text-2xl font-bold text-green-700">Employee Rice Distribution</h2>
-                    <p className="max-w-2xl text-sm text-slate-600">
-                        Review and manage rice distributions with sorting and filtering directly in the grid.
-                    </p>
-                </div>
-            </div>
-
-            <Suspense fallback={<SkeletonTable />}>
-                <DistributionGrid distributions={rows} />
-            </Suspense>
+            <DistributionManager
+                initialRows={rows}
+                riceOptions={riceItems.map((rice) => ({ id: rice.id, name: rice.name }))}
+            />
         </section>
     )
 }

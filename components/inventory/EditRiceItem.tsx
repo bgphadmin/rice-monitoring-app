@@ -77,10 +77,12 @@ export function EditRiceItem({ item }: { item: { id: string; name: string; stock
                         <AlertDialogCancel
                             type="submit"
                             className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
-                        // className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
                         >
                             Save
                         </AlertDialogCancel>
+                        {/* <LoadingButton loading={loading}>
+                            Add Distribution
+                        </LoadingButton> */}
                     </AlertDialogFooter>
                 </form>
             </AlertDialogContent>

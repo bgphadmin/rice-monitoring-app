@@ -26,18 +26,13 @@ import {
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 
-export type DistributionRow = {
+export type InventoryRow = {
     id: string
-    firstName: string
-    lastName: string
-    employeeId: string
-    rice: {
-        name: string
-    }
-    quantityKg: number
+    name: string
+    stockKg: number
+    reorderLevel: number
     comment: string | null
-    dateGiven: string
-    createdBy: {
+    addedBy: {
         firstName: string
         lastName: string
     }
@@ -58,63 +53,43 @@ const features = tableFeatures({
     },
 })
 
-const columns: ColumnDef<typeof features, DistributionRow>[] = [
+const columns: ColumnDef<typeof features, InventoryRow>[] = [
     {
-        id: "employee",
-        header: "Employee",
-        sortFn: (a, b) => a.original.firstName.localeCompare(b.original.firstName),
-        accessorFn: (row: DistributionRow) => `${row.firstName} ${row.lastName}`,
+        id: "name",
+        header: "Variety",
+        sortFn: (a, b) => a.original.name.localeCompare(b.original.name),
+        accessorFn: (row: InventoryRow) => `${row.name}`,
     },
     {
-        accessorKey: "employeeId",
-        header: "Employee ID",
-        sortFn: (a, b) => a.original.employeeId.localeCompare(b.original.employeeId),
+        accessorKey: "stockKg",
+        header: "Stock (kg)",
+        sortFn: (a, b) => a.original.stockKg - b.original.stockKg,
     },
     {
-        id: "rice",
-        header: "Rice Type",
-        sortFn: (a, b) => a.original.rice.name.localeCompare(b.original.rice.name),
-        accessorFn: (row: DistributionRow) => row.rice.name,
-    },
-    {
-        accessorKey: "quantityKg",
-        header: "Quantity (kg)",
+        accessorKey: "reorderLevel",
+        header: "Reorder Level (kg)",
+        sortFn: (a, b) => a.original.reorderLevel - b.original.reorderLevel,
     },
     {
         accessorKey: "comment",
-        header: "Comment",
+        header: "Comments",
         cell: (info) => info.getValue() ?? "-",
     },
     {
-        accessorKey: "dateGiven",
-        header: "Date Given",
-        sortFn: (a, b) => a.original.dateGiven.localeCompare(b.original.dateGiven),
-        cell: (info) => {
-            const value = info.getValue() as string
-            const date = new Date(value)
-            return new Intl.DateTimeFormat("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                timeZone: "UTC",
-            }).format(date)
-        },
-    },
-    {
-        id: "createdBy",
+        id: "addedBy",
         header: "Entered By",
-        sortFn: (a, b) => a.original.createdBy.firstName.localeCompare(b.original.createdBy.firstName),
-        accessorFn: (row: DistributionRow) => `${row.createdBy.firstName} ${row.createdBy.lastName}`,
+        sortFn: (a, b) => a.original.addedBy.firstName.localeCompare(b.original.addedBy.firstName),
+        accessorFn: (row: InventoryRow) => `${row.addedBy.firstName} ${row.addedBy.lastName}`
     },
 ]
 
-export default function DistributionGrid({ distributions }: { distributions: DistributionRow[] }) {
+export default function InventoryGrid({ inventory }: { inventory: InventoryRow[] }) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [globalFilter, setGlobalFilter] = React.useState("")
 
     const table = useTable({
         features,
-        data: distributions,
+        data: inventory,
         columns,
         state: {
             sorting,
@@ -142,7 +117,7 @@ export default function DistributionGrid({ distributions }: { distributions: Dis
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id} className="whitespace-nowrap bg-green-300">
+                                    <TableHead key={header.id} className="whitespace-nowrap bg-blue-300">
                                         {header.isPlaceholder ? null : (
                                             <button
                                                 type="button"
@@ -172,7 +147,7 @@ export default function DistributionGrid({ distributions }: { distributions: Dis
                             table.getRowModel().rows.map((row, rowIndex) => (
                                 <TableRow
                                     key={row.id}
-                                    className={rowIndex % 2 === 0 ? "bg-green-100" : undefined}
+                                    className={rowIndex % 2 === 0 ? "bg-blue-100" : undefined}
                                 >
                                     {row.getAllCells().map((cell) => (
                                         <TableCell key={cell.id} className="align-top py-3 px-3 text-sm text-slate-700">
@@ -188,7 +163,7 @@ export default function DistributionGrid({ distributions }: { distributions: Dis
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="p-6 text-center text-sm text-slate-500">
-                                    No distribution records match your filter.
+                                    No rice records match your filter.
                                 </TableCell>
                             </TableRow>
                         )}
