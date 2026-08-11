@@ -61,21 +61,29 @@ export const addRiceItem = async (
 };
 
 export async function editRiceItemAction(id: string, formData: FormData): Promise<{ message: string }> {
+  const { userId } = auth();
   try {
     const rawData = Object.fromEntries(formData);
     const validatedFields = riceSchema.parse(rawData);
-    await db.rice.update({
-      where: { id },
-      data: { ...validatedFields },
+    const inventory = await db.rice.update({
+      where: { id},
+      data: { ...validatedFields, addedById: userId || "" },
+      include: {
+        addedBy: true,
+      },
     });
 
     revalidatePath("/inventory");
-    return { message: '[{"message": "Rice item updated successfully"}, {"result": "success"} ]' };
-    // return { success: true, message: "Rice item updated successfully" };
+    return {
+      message: JSON.stringify([
+        { message: "Rice item updated successfully" },
+        { result: "success" },
+        { inventory },
+      ]),
+    };
   } catch (err: any) {
     console.error("Update error:", err);
     return renderError(err);
-    // return { success: false, message: "Failed to update rice item" };
   }
 }
 
@@ -108,27 +116,6 @@ export async function getUsers() {
   return db.user.findMany({ orderBy: { createdAt: "desc" } });
 }
 
-// export async function addUser({
-//   email,
-//   password,
-//   firstName,
-//   lastName,
-//   role,
-//   employeeId,
-// }: {
-//   email: string;
-//   password: string;
-//   firstName: string;
-//   lastName: string;
-//   role: "ADMIN" | "USER";
-//   employeeId: string;
-// }) {
-//   return db.user.create({
-//     data: { email, password, firstName, lastName, role, employeeId },
-//   });
-// }
-
-
 export async function editUserItemAction(id: string, formData: FormData): Promise<{ message: string }> {
   const isSuperUser = await verifyUser("SUPERUSER");
 
@@ -143,14 +130,11 @@ export async function editUserItemAction(id: string, formData: FormData): Promis
       where: { id },
       data: { ...validatedFields },
     });
-
     revalidatePath("/inventory");
     return { message: '[{"message": "User details updated successfully"}, {"result": "success"} ]' };
-    // return { success: true, message: "Rice item updated successfully" };
   } catch (err: any) {
     console.error("Update error:", err);
     return renderError(err);
-    // return { success: false, message: "Failed to update rice item" };
   }
 }
 

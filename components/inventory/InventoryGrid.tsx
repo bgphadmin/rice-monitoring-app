@@ -1,6 +1,4 @@
-﻿"use client"
-
-import * as React from "react"
+﻿import * as React from "react"
 import {
     ColumnDef,
     createCoreRowModel,
@@ -55,6 +53,23 @@ const features = tableFeatures({
 
 const columns: ColumnDef<typeof features, InventoryRow>[] = [
     {
+        id: "status",
+        header: "Status",
+        cell: ({ row }) => {
+            const { stockKg, reorderLevel } = row.original;
+            const isLowStock = stockKg <= reorderLevel;
+
+            return isLowStock && (
+                <div className="flex items-center justify-center">
+                    <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+                    </span>
+                </div>
+            );
+        },
+    },
+    {
         id: "name",
         header: "Variety",
         sortFn: (a, b) => a.original.name.localeCompare(b.original.name),
@@ -83,10 +98,11 @@ const columns: ColumnDef<typeof features, InventoryRow>[] = [
     },
 ]
 
-export default function InventoryGrid({ inventory }: { inventory: InventoryRow[] }) {
+export default function InventoryGrid({ inventory, onRowClick }: { inventory: InventoryRow[]; onRowClick?: (row: InventoryRow) => void }) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [globalFilter, setGlobalFilter] = React.useState("")
 
+    
     const table = useTable({
         features,
         data: inventory,
@@ -147,7 +163,11 @@ export default function InventoryGrid({ inventory }: { inventory: InventoryRow[]
                             table.getRowModel().rows.map((row, rowIndex) => (
                                 <TableRow
                                     key={row.id}
-                                    className={rowIndex % 2 === 0 ? "bg-blue-100" : undefined}
+                                    onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                                    className={cn(
+                                        rowIndex % 2 === 0 ? "bg-blue-100" : undefined,
+                                        onRowClick ? "cursor-pointer hover:bg-blue-200" : undefined
+                                    )}
                                 >
                                     {row.getAllCells().map((cell) => (
                                         <TableCell key={cell.id} className="align-top py-3 px-3 text-sm text-slate-700">

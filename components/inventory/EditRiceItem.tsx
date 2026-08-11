@@ -1,6 +1,5 @@
 "use client";
 
-import toast from "react-hot-toast";
 import {
     AlertDialog,
     AlertDialogTrigger,
@@ -13,20 +12,39 @@ import {
 } from "@/components/ui/alert-dialog"; // shadcn/ui import
 import { editRiceItemAction } from "@/utils/actions";
 import { Button } from "../ui/button";
+import LoadingButton from "../utils/LoadingButton";
+import { InventoryRow } from "./InventoryGrid";
+import toast from "react-hot-toast";
 
-export function EditRiceItem({ item }: { item: { id: string; name: string; stockKg: number; reorderLevel: number; comment: string } }) {
+
+export function EditRiceItem({
+    item,
+    open,
+    onOpenChange,
+    onEditSuccess, }: { item: { id: string; name: string; stockKg: number; reorderLevel: number; comment: string | null; addedBy: { firstName: string; lastName: string; }; }, open: boolean, onOpenChange: (open: boolean) => void, showTrigger?: boolean, onEditSuccess?: (updated: InventoryRow) => void }) {
+
     const handleSubmit = async (formData: FormData) => {
         const result = await editRiceItemAction(item.id, formData);
         const parsedMessage = JSON.parse(result.message);
-        if (parsedMessage.length == 2 && parsedMessage[1].result == 'success') {
+
+        if (parsedMessage.length == 3 && parsedMessage[1].result == 'success') {
             toast.success(parsedMessage[0].message);
+            const updatedRow: InventoryRow = {
+                ...item,
+                name: formData.get("name") as string,
+                stockKg: Number(formData.get("stockKg")),
+                reorderLevel: Number(formData.get("reorderLevel")),
+                comment: formData.get("comment") as string || null,
+            };
+            onOpenChange(false);
+            onEditSuccess?.(updatedRow);
         } else {
             toast.error(parsedMessage[0].message);
         }
-    };
+    }
 
     return (
-        <AlertDialog>
+        <AlertDialog open={open} onOpenChange={onOpenChange}>
             <AlertDialogTrigger
                 render={<Button className="bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 rounded-md">Edit</Button>}
             />
@@ -38,6 +56,18 @@ export function EditRiceItem({ item }: { item: { id: string; name: string; stock
                     </AlertDialogDescription>
                 </AlertDialogHeader>
 
+                {/* <form action={async (formData: FormData) => {
+                    await editRiceItemAction(item.id, formData);
+
+                    const updatedRow: InventoryRow = {
+                        ...item,
+                        name: formData.get("name") as string,
+                        stockKg: Number(formData.get("stockKg")),
+                        reorderLevel: Number(formData.get("reorderLevel")),
+                        comment: formData.get("comment") as string || null,
+                    };
+                    onOpenChange(false);
+                    onEditSuccess?.(updatedRow); */}
                 <form action={handleSubmit} className="space-y-4">
                     <label className="block text-sm font-medium text-gray-700">Rice Variety</label>
                     <input
@@ -66,7 +96,15 @@ export function EditRiceItem({ item }: { item: { id: string; name: string; stock
                     <input
                         type="text"
                         name="comment"
-                        defaultValue={item.comment}
+                        defaultValue={item.comment || ""}
+                        className="w-full rounded-md border border-gray-300 px-3 py-2"
+                    />
+                    {/* <label className="block text-sm font-medium text-gray-700">Added By</label> */}
+                    <input
+                        hidden
+                        type="text"
+                        name="addedBy"
+                        defaultValue={item.addedBy === null ? "" : `${item.addedBy.firstName} ${item.addedBy.lastName}`}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
 
@@ -74,15 +112,9 @@ export function EditRiceItem({ item }: { item: { id: string; name: string; stock
                         <AlertDialogCancel className="flex-1 rounded-md bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300">
                             Cancel
                         </AlertDialogCancel>
-                        <AlertDialogCancel
-                            type="submit"
-                            className="flex-1 rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500"
-                        >
+                        <LoadingButton >
                             Save
-                        </AlertDialogCancel>
-                        {/* <LoadingButton loading={loading}>
-                            Add Distribution
-                        </LoadingButton> */}
+                        </LoadingButton>
                     </AlertDialogFooter>
                 </form>
             </AlertDialogContent>

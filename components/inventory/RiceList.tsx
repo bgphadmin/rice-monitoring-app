@@ -1,12 +1,12 @@
 
 import { getRiceItems } from "@/utils/actions";
 import { DeleteRiceItem } from "./DeleteRiceItem";
-import { EditRiceItem } from "./EditRiceItem";
 
 export default async function RiceList() {
 
     // await new Promise((resolve) => setTimeout(resolve, 2000));
     const riceItems = await getRiceItems();
+
 
     return (
         <div className="bg-white rounded-lg shadow p-3 overflow-x-auto">
@@ -32,13 +32,13 @@ export default async function RiceList() {
                             <td className="px-2 py-1 hidden md:table-cell">{rice.comment ?? ""}</td>
                             <td className="px-2 py-1 text-right">
                                 <div className="inline-flex flex-col md:flex-row gap-1">
-                                    <EditRiceItem item={{
+                                    {/* <EditRiceItem item={{
                                         id: rice.id,
                                         name: rice.name,
                                         stockKg: rice.stockKg.toNumber(),
                                         reorderLevel: rice.reorderLevel.toNumber(),
                                         comment: rice.comment ?? ""
-                                    }} />
+                                    }} /> */}
                                     <DeleteRiceItem id={rice.id} riceName={rice.name} />
                                 </div>
                             </td>

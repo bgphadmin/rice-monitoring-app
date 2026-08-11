@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import InventoryGrid, { type InventoryRow } from "@/components/inventory/InventoryGrid"
+import InventoryGrid from "@/components/inventory/InventoryGrid"
 import AddInvetoryButton from "@/components/inventory/AddInventoryButton"
 import FormContainer from "@/components/utils/FormContainer"
 import LoadingButton from "@/components/utils/LoadingButton"
@@ -17,6 +17,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { addRiceItem } from "@/utils/actions"
+import { EditRiceItem } from "./EditRiceItem"
+import {InventoryRow} from "./InventoryGrid"
 
 interface InventoryManagerProps {
     initialRows: InventoryRow[]
@@ -32,6 +34,7 @@ const defaultFormState = {
 export default function InventoryManager({ initialRows }: InventoryManagerProps) {
     const [rows, setRows] = React.useState<InventoryRow[]>(initialRows)
     const [formValues, setFormValues] = React.useState(defaultFormState)
+    const [selectedRow, setSelectedRow] = React.useState<InventoryRow | null>(null);
 
     const handleFormChange = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -48,6 +51,13 @@ export default function InventoryManager({ initialRows }: InventoryManagerProps)
             setFormValues(defaultFormState)
         }
     }
+
+    const handleEditSuccess = (updated: InventoryRow) => {
+        setRows((prev) =>
+            prev.map((row) => row.id === updated.id ? updated : row)
+        );
+        setSelectedRow(null);
+    };
 
     return (
         <div className="space-y-6">
@@ -97,7 +107,19 @@ export default function InventoryManager({ initialRows }: InventoryManagerProps)
                     </AlertDialogContent>
                 </AlertDialog>
             </div>
-            <InventoryGrid inventory={rows} />
+            <InventoryGrid
+                inventory={rows}
+                onRowClick={(row) => setSelectedRow(row)} // row click opens dialog 
+            />
+
+            {selectedRow && (
+                <EditRiceItem
+                    item={selectedRow}
+                    open={true}
+                    onOpenChange={(open) => !open && setSelectedRow(null)}
+                    onEditSuccess={handleEditSuccess}
+                />
+            )}
         </div>
     )
 }
