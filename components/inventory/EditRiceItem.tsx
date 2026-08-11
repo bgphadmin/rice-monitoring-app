@@ -10,20 +10,27 @@ import {
     AlertDialogFooter,
     AlertDialogCancel,
 } from "@/components/ui/alert-dialog"; // shadcn/ui import
-import { editRiceItemAction } from "@/utils/actions";
+import { deleteRiceItemAction, editRiceItemAction } from "@/utils/actions";
 import { Button } from "../ui/button";
 import LoadingButton from "../utils/LoadingButton";
 import { InventoryRow } from "./InventoryGrid";
 import toast from "react-hot-toast";
+import { useState } from "react";
+import LoadingDeleteButton from "../utils/LoadingDeleteButton";
 
 
 export function EditRiceItem({
     item,
     open,
     onOpenChange,
-    onEditSuccess, }: { item: { id: string; name: string; stockKg: number; reorderLevel: number; comment: string | null; addedBy: { firstName: string; lastName: string; }; }, open: boolean, onOpenChange: (open: boolean) => void, showTrigger?: boolean, onEditSuccess?: (updated: InventoryRow) => void }) {
+    onEditSuccess,
+    onDeleteSuccess }: { item: { id: string; name: string; stockKg: number; reorderLevel: number; comment: string | null; addedBy: { firstName: string; lastName: string; }; }, open: boolean, onOpenChange: (open: boolean) => void, showTrigger?: boolean, onEditSuccess?: (updated: InventoryRow) => void, onDeleteSuccess?: (deleteId: string) => void }) {
+
+    const [deleting, setDeleting] = useState(false);
+    const [saving, setSaving] = useState(false);
 
     const handleSubmit = async (formData: FormData) => {
+        setSaving(true);
         const result = await editRiceItemAction(item.id, formData);
         const parsedMessage = JSON.parse(result.message);
 
@@ -41,7 +48,26 @@ export function EditRiceItem({
         } else {
             toast.error(parsedMessage[0].message);
         }
+
+        setSaving(false);
     }
+
+    const handleDelete = async () => {
+        setDeleting(true);
+        const result = await deleteRiceItemAction(item.id);
+        const parsedMessage = JSON.parse(result.message);
+
+        if (parsedMessage[1].result === "success") {
+            toast.success(parsedMessage[0].message);
+            onOpenChange(false);
+            // Instead of updated row, you may want to trigger a refresh in parent
+            onDeleteSuccess?.(item.id);
+        } else {
+            toast.error(parsedMessage[0].message);
+        }
+        setDeleting(false);
+    };
+
 
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
@@ -109,12 +135,24 @@ export function EditRiceItem({
                     />
 
                     <AlertDialogFooter className="flex flex-row gap-2">
-                        <AlertDialogCancel className="flex-1 rounded-md bg-gray-200 px-4 py-2 text-gray-800 hover:bg-gray-300">
+                        <AlertDialogCancel className="flex-1 items-center justify-center gap-2 rounded-md bg-slate-500 px-6 py-2 text-white hover:bg-slate-700 disabled:opacity-50 shadow-2xl transition-all duration-200 hover:-translate-y-1 hover:shadow-xl active:translate-y-0 h-11">
                             Cancel
                         </AlertDialogCancel>
-                        <LoadingButton >
-                            Save
+                        <LoadingButton 
+                            loading={saving} 
+                            type="submit"
+                            className="flex-1 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl active:translate-y-0"
+                            >
+                                Save
                         </LoadingButton>
+                        <LoadingDeleteButton
+                            onClick={handleDelete}
+                            loading={deleting}
+                            type="button"
+                            className="flex-1 rounded-md bg-red-600 text-white hover:bg-red-700 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl active:translate-y-0"
+                        >
+                            Delete
+                        </LoadingDeleteButton>
                     </AlertDialogFooter>
                 </form>
             </AlertDialogContent>

@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { addRiceItem } from "@/utils/actions"
 import { EditRiceItem } from "./EditRiceItem"
-import {InventoryRow} from "./InventoryGrid"
+import { InventoryRow } from "./InventoryGrid"
 
 interface InventoryManagerProps {
     initialRows: InventoryRow[]
@@ -57,6 +57,12 @@ export default function InventoryManager({ initialRows }: InventoryManagerProps)
             prev.map((row) => row.id === updated.id ? updated : row)
         );
         setSelectedRow(null);
+    };
+
+    const handleDeleteSuccess = (deletedId: string) => {
+        setRows((prev) => prev.filter((row) => row.id !== deletedId)); // ✅ remove row
+        setSelectedRow(null);
+        // router.refresh();
     };
 
     return (
@@ -118,6 +124,7 @@ export default function InventoryManager({ initialRows }: InventoryManagerProps)
                     open={true}
                     onOpenChange={(open) => !open && setSelectedRow(null)}
                     onEditSuccess={handleEditSuccess}
+                    onDeleteSuccess={handleDeleteSuccess}
                 />
             )}
         </div>

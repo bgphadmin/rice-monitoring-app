@@ -88,23 +88,18 @@ export async function editRiceItemAction(id: string, formData: FormData): Promis
 }
 
 
-export async function deleteRiceItemAction(
-  _prevState: unknown,
-  formData: FormData
-): Promise<{ message: string }> {
+export async function deleteRiceItemAction(id: string): Promise<{ message: string }> {
   try {
-    const raw = Object.fromEntries(formData) as Record<string, any>;
-    const id = raw.id as string | undefined;
-
-    if (!id) {
-      return { message: '[{"message": "Missing id"}, {"result": "error"}]' };
-    }
-
-    await db.rice.delete({
+    const inventory = await db.rice.delete({
       where: { id },
     });
     revalidatePath("/inventory");
-    return { message: '[{"message": "Rice item deleted successfully"}, {"result": "success"}]' };
+    return {
+      message: JSON.stringify([
+        { message: "Rice item deleted successfully" },
+        { result: "success" },
+      ])
+    };
   } catch (err: any) {
     console.error("Delete error:", err);
     return renderError(err);

@@ -23,7 +23,7 @@ export function DeleteRiceItem({ id, riceName }: { id: string; riceName?: string
                         Are you sure you want to delete this rice item? This action cannot be undone.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
-                <FormContainer action={deleteRiceItemAction}>
+                <FormContainer action={() => deleteRiceItemAction(id)}>
                     {({ loading }) => (
                         <>
                             <input type="hidden" name="id" value={id} />
