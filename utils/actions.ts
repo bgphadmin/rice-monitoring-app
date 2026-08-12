@@ -7,13 +7,35 @@ import { revalidatePath } from "next/cache";
 import { userSchema } from "./validation/userSchema";
 import { auth } from "@clerk/nextjs/server";
 import verifyUser from "./userValidation";
+import { ZodError } from "zod";
 
 /* ------------------ Rice Actions ------------------ */
-export const renderError = (error: unknown): { message: string, result: string } => {
-  return {
-    message: error instanceof Error ? error.message : 'An error occurred',
-    result: 'error',
-  };
+export const renderError = (error: unknown): { message: string } => {
+    if (error instanceof ZodError) {
+      console.log("ZOD Error:", error);
+      return {
+        message: JSON.stringify([
+          { message: "Error: " + JSON.parse(error.message)[0].message || error.message },
+          { result: "error" },
+        ])
+      };
+    } else if (error instanceof Error) {
+      console.log("Error: ", error);
+      return {
+        message: JSON.stringify([
+          { message: "Catch Error: " + error.message },
+          { result: "error" },
+        ])
+      };
+    } else {
+    console.log("Error:", error);
+    return {
+      message: JSON.stringify([
+        { message: "Something went wrong." },
+        { result: "error" },
+      ])
+    };
+    }
 };
 
 export async function getRiceItems() {
@@ -32,7 +54,6 @@ export const addRiceItem = async (
   formData: FormData
 ): Promise<{ message: string }> => {
   const { userId } = auth();
-
   try {
     const rawData = Object.fromEntries(formData);
     const validatedFields = riceSchema.parse(rawData);
@@ -54,9 +75,18 @@ export const addRiceItem = async (
         { inventory },
       ]),
     };
-  } catch (error: any) {
-    console.error("Error adding distribution:", error);
-    return renderError(error);
+  } catch (error: unknown) {
+
+    if ((error as Error & { code: string }).code === "P2002") {
+      return {
+        message: JSON.stringify([
+          { message: "Rice variety already exists" },
+          { result: "error" },
+        ])
+      };
+    } else {
+      return renderError(error);
+    }
   }
 };
 
@@ -81,16 +111,15 @@ export async function editRiceItemAction(id: string, formData: FormData): Promis
         { inventory },
       ]),
     };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Update error:", err);
     return renderError(err);
   }
 }
 
-
 export async function deleteRiceItemAction(id: string): Promise<{ message: string }> {
   try {
-    const inventory = await db.rice.delete({
+    await db.rice.delete({
       where: { id },
     });
     revalidatePath("/inventory");
@@ -100,11 +129,47 @@ export async function deleteRiceItemAction(id: string): Promise<{ message: strin
         { result: "success" },
       ])
     };
-  } catch (err: any) {
-    console.error("Delete error:", err);
-    return renderError(err);
+  } catch (err: unknown) {
+    if ((err as Error & { code: string }).code === "P2003") {
+      return {
+        message: JSON.stringify([
+          { message: "Unable to delete rice item as it is in use in Rice Distributions" },
+          { result: "error" },
+        ])
+      } 
+    } else {
+      return renderError(err);
+    } 
+      
+      
+      
+      
+    //   if (err instanceof ZodError) {
+    //   return {
+    //     message: 
+    //       JSON.stringify([
+    //         { message: "Error deleting rice item: " + JSON.parse(err.message)[0].message || err.message },
+    //         { result: "error" }
+    //       ])
+    //   };
+    // } else if (err instanceof Error) {
+    //   return {
+    //     message: JSON.stringify([
+    //       { message: "Error deleting rice item: " + err.message },
+    //       { result: "error" },
+    //     ])
+    //   };
+    // } else {
+    //   return {
+    //     message: JSON.stringify([
+    //       { message: "Unknown error occurred" },
+    //       { result: "error" },
+    //     ])
+    //   };
+    // }
   }
 }
+
 
 /* ------------------ User Actions ------------------ */
 export async function getUsers() {
@@ -127,7 +192,7 @@ export async function editUserItemAction(id: string, formData: FormData): Promis
     });
     revalidatePath("/inventory");
     return { message: '[{"message": "User details updated successfully"}, {"result": "success"} ]' };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Update error:", err);
     return renderError(err);
   }
@@ -191,7 +256,7 @@ export async function addDistributionAction(
         { distribution },
       ]),
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error adding distribution:", error);
     return renderError(error);
   }

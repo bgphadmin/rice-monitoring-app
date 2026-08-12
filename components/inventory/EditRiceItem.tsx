@@ -56,7 +56,6 @@ export function EditRiceItem({
         setDeleting(true);
         const result = await deleteRiceItemAction(item.id);
         const parsedMessage = JSON.parse(result.message);
-
         if (parsedMessage[1].result === "success") {
             toast.success(parsedMessage[0].message);
             onOpenChange(false);
@@ -67,8 +66,6 @@ export function EditRiceItem({
         }
         setDeleting(false);
     };
-
-
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
             <AlertDialogTrigger
@@ -81,19 +78,6 @@ export function EditRiceItem({
                         Update the details below and save changes.
                     </AlertDialogDescription>
                 </AlertDialogHeader>
-
-                {/* <form action={async (formData: FormData) => {
-                    await editRiceItemAction(item.id, formData);
-
-                    const updatedRow: InventoryRow = {
-                        ...item,
-                        name: formData.get("name") as string,
-                        stockKg: Number(formData.get("stockKg")),
-                        reorderLevel: Number(formData.get("reorderLevel")),
-                        comment: formData.get("comment") as string || null,
-                    };
-                    onOpenChange(false);
-                    onEditSuccess?.(updatedRow); */}
                 <form action={handleSubmit} className="space-y-4">
                     <label className="block text-sm font-medium text-gray-700">Rice Variety</label>
                     <input
@@ -138,12 +122,12 @@ export function EditRiceItem({
                         <AlertDialogCancel className="flex-1 items-center justify-center gap-2 rounded-md bg-slate-500 px-6 py-2 text-white hover:bg-slate-700 disabled:opacity-50 shadow-2xl transition-all duration-200 hover:-translate-y-1 hover:shadow-xl active:translate-y-0 h-11">
                             Cancel
                         </AlertDialogCancel>
-                        <LoadingButton 
-                            loading={saving} 
+                        <LoadingButton
+                            loading={saving}
                             type="submit"
                             className="flex-1 rounded-md bg-blue-600 text-white hover:bg-blue-700 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl active:translate-y-0"
-                            >
-                                Save
+                        >
+                            Save
                         </LoadingButton>
                         <LoadingDeleteButton
                             onClick={handleDelete}
