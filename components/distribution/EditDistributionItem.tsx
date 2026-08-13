@@ -10,50 +10,82 @@ import {
     AlertDialogFooter,
     AlertDialogCancel,
 } from "@/components/ui/alert-dialog"; // shadcn/ui import
-import { deleteRiceItemAction, editRiceItemAction } from "@/utils/actions";
+import { deleteDistributionItemAction, editDistributionAction, getRiceItem} from "@/utils/actions";
 import { Button } from "../ui/button";
 import LoadingButton from "../utils/LoadingButton";
-import { InventoryRow } from "./InventoryGrid";
 import toast from "react-hot-toast";
 import { useState } from "react";
 import LoadingDeleteButton from "../utils/LoadingDeleteButton";
+import { DistributionRow } from "@/utils/types";
+import { revalidatePath } from "next/cache";
 
-export function EditRiceItem({
+// export type DistributionRow = {
+//     id: string
+//     firstName: string
+//     lastName: string
+//     employeeId: string
+//     rice: {
+//         name: string
+//     }
+//     quantityKg: number
+//     comment: string | null
+//     dateGiven: string
+//     createdBy: {
+//         firstName: string
+//         lastName: string
+//     }
+// }
+
+export type RiceOption = {
+    id: string
+    name: string
+};
+
+
+export function EditDistributionItem({
     item,
     open,
     onOpenChange,
     onEditSuccess,
-    onDeleteSuccess, }: { item: { id: string; name: string; stockKg: number; reorderLevel: number; comment: string | null; addedBy: { firstName: string; lastName: string; }; }, open: boolean, onOpenChange: (open: boolean) => void, showTrigger?: boolean, onEditSuccess?: (updated: InventoryRow) => void, onDeleteSuccess?: (deleteId: string) => void }) {
+    onDeleteSuccess,
+    riceOptions }: { item: { id: string; firstName: string; lastName: string; employeeId: string; rice: { id: string; name: string; }; quantityKg: number; dateGiven: string; createdBy: { firstName: string; lastName: string; }; comment: string | null; }, open: boolean, onOpenChange: (open: boolean) => void, showTrigger?: boolean, onEditSuccess?: (updated: DistributionRow) => void, onDeleteSuccess?: (deleteId: string) => void, riceOptions: RiceOption[] }) {
 
     const [deleting, setDeleting] = useState(false);
     const [saving, setSaving] = useState(false);
 
     const handleSubmit = async (formData: FormData) => {
         setSaving(true);
-        const result = await editRiceItemAction(item.id, formData);
+        const result = await editDistributionAction(item.id, formData);
         const parsedMessage = JSON.parse(result.message);
 
         if (parsedMessage.length == 3 && parsedMessage[1].result == 'success') {
             toast.success(parsedMessage[0].message);
-            const updatedRow: InventoryRow = {
+            const riceItem = await getRiceItem(formData.get("riceId") as string);
+            const updatedRow: DistributionRow = {
                 ...item,
-                name: formData.get("name") as string,
-                stockKg: Number(formData.get("stockKg")),
-                reorderLevel: Number(formData.get("reorderLevel")),
+                firstName: formData.get("firstName") as string,
+                lastName: formData.get("lastName") as string,
+                employeeId: formData.get("employeeId") as string,
+                rice: {
+                    name: riceItem?.name as string,
+                    id: formData.get("riceId") as string
+                },
+                quantityKg: Number(formData.get("quantityKg")),
+                dateGiven: formData.get("dateGiven") as string,
                 comment: formData.get("comment") as string || null,
             };
             onOpenChange(false);
             onEditSuccess?.(updatedRow);
+            revalidatePath("/distribution");
         } else {
             toast.error(parsedMessage[0].message);
         }
-
         setSaving(false);
     }
 
     const handleDelete = async () => {
         setDeleting(true);
-        const result = await deleteRiceItemAction(item.id);
+        const result = await deleteDistributionItemAction(item.id);
         const parsedMessage = JSON.parse(result.message);
         if (parsedMessage[1].result === "success") {
             toast.success(parsedMessage[0].message);
@@ -65,6 +97,7 @@ export function EditRiceItem({
         }
         setDeleting(false);
     };
+
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
             <AlertDialogTrigger
@@ -78,42 +111,66 @@ export function EditRiceItem({
                     </AlertDialogDescription>
                 </AlertDialogHeader>
                 <form action={handleSubmit} className="space-y-4">
-                    <label className="block text-sm font-medium text-gray-700">Rice Variety</label>
+                    <label className="block text-sm font-medium text-gray-700">First Name</label>
                     <input
                         type="text"
-                        name="name"
-                        defaultValue={item.name}
+                        name="firstName"
+                        defaultValue={item.firstName}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
-                    <label className="block text-sm font-medium text-gray-700">Stock (kg)</label>
+                    <label className="block text-sm font-medium text-gray-700">Last Name</label>
+                    <input
+                        type="text"
+                        name="lastName"
+                        defaultValue={item.lastName}
+                        className="w-full rounded-md border border-gray-300 px-3 py-2"
+                    />
+                    <label className="block text-sm font-medium text-gray-700">Employee ID</label>
+                    <input
+                        type="text"
+                        name="employeeId"
+                        defaultValue={item.employeeId}
+                        className="w-full rounded-md border border-gray-300 px-3 py-2"
+                    />
+                    <label className="block text-sm font-medium text-gray-700"> Rice Variety</label>
+                    <select
+                        name="riceId"
+                        defaultValue={item.rice.id}
+                        id="name"
+                        // id="name"
+                        required
+                        className="flex h-11 w-full rounded-xl border border-input bg-input/30 px-3 py-2 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                    >
+                        <option value="">Select a rice variety</option>
+                        {riceOptions.map((rice) => (
+                            <option key={rice.id} value={rice.id}>
+                                {rice.name}
+                            </option>
+                        ))}
+                    </select>
                     <input
                         type="number"
-                        step="0.25"
-                        name="stockKg"
-                        defaultValue={item.stockKg}
+                        name="quantityKg"
+                        defaultValue={item.quantityKg}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
-                    <label className="block text-sm font-medium text-gray-700">Reorder Level (kg)</label>
+                    <label className="block text-sm font-medium text-gray-700">Date Given</label>
                     <input
-                        type="number"
-                        step="0.25"
-                        name="reorderLevel"
-                        defaultValue={item.reorderLevel}
+                        type="date"
+                        name="dateGiven"
+                        // defaultValue={item.dateGiven}
+                        defaultValue={
+                            item.dateGiven
+                                ? new Date(item.dateGiven).toISOString().split("T")[0]
+                                : ""
+                        }
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
-                    <label className="block text-sm font-medium text-gray-700">Comments</label>
+                    <label className="block text-sm font-medium text-gray-700">Comment</label>
                     <input
                         type="text"
                         name="comment"
                         defaultValue={item.comment || ""}
-                        className="w-full rounded-md border border-gray-300 px-3 py-2"
-                    />
-                    {/* <label className="block text-sm font-medium text-gray-700">Added By</label> */}
-                    <input
-                        hidden
-                        type="text"
-                        name="addedBy"
-                        defaultValue={item.addedBy === null ? "" : `${item.addedBy.firstName} ${item.addedBy.lastName}`}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
 

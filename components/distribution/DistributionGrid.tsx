@@ -33,6 +33,7 @@ export type DistributionRow = {
     employeeId: string
     rice: {
         name: string
+        id: string
     }
     quantityKg: number
     comment: string | null
@@ -108,7 +109,7 @@ const columns: ColumnDef<typeof features, DistributionRow>[] = [
     },
 ]
 
-export default function DistributionGrid({ distributions }: { distributions: DistributionRow[] }) {
+export default function DistributionGrid({ distributions, onRowClick }: { distributions: DistributionRow[]; onRowClick?: (row: DistributionRow) => void }) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [globalFilter, setGlobalFilter] = React.useState("")
 
@@ -172,7 +173,11 @@ export default function DistributionGrid({ distributions }: { distributions: Dis
                             table.getRowModel().rows.map((row, rowIndex) => (
                                 <TableRow
                                     key={row.id}
-                                    className={rowIndex % 2 === 0 ? "bg-green-100" : undefined}
+                                    onClick={onRowClick ? () => onRowClick(row.original) : undefined}
+                                    className={cn(
+                                        rowIndex % 2 === 0 ? "bg-green-100" : undefined,
+                                        onRowClick ? "cursor-pointer hover:bg-green-200" : undefined
+                                    )}
                                 >
                                     {row.getAllCells().map((cell) => (
                                         <TableCell key={cell.id} className="align-top py-3 px-3 text-sm text-slate-700">

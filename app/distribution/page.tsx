@@ -29,6 +29,7 @@ const DistributionPage = async () => {
         employeeId: record.employeeId,
         rice: {
             name: record.rice.name,
+            id: record.rice.id
         },
         quantityKg: record.quantityKg,
         comment: record.comment,

@@ -49,6 +49,22 @@ export async function getRiceItems() {
   });
 }
 
+// get rice options
+export async function getRiceOptions() {
+  return await db.rice.findMany({
+    select: { id: true, name: true },
+    orderBy: { name: "asc" },
+  });
+}
+
+// get a rice item
+export async function getRiceItem(id: string){
+  return await db.rice.findUnique ({ 
+      select: { name: true },
+      where: { id } 
+    });
+}
+
 export const addRiceItem = async (
   prevState: unknown,
   formData: FormData
@@ -224,7 +240,7 @@ export async function addDistributionAction(
     const validatedFields = distributionSchema.parse(rawData);
 
     const riceRecord = await db.rice.findUnique({
-      where: { name: validatedFields.riceName },
+      where: { id: validatedFields.riceId },
     });
 
     if (!riceRecord) {
@@ -236,7 +252,7 @@ export async function addDistributionAction(
         firstName: validatedFields.firstName,
         lastName: validatedFields.lastName,
         employeeId: validatedFields.employeeId,
-        riceId: riceRecord.id,
+        riceId: validatedFields.riceId,
         quantityKg: validatedFields.quantityKg,
         comment: validatedFields.comment,
         dateGiven: new Date(`${validatedFields.dateGiven}T00:00:00.000Z`),
@@ -262,26 +278,56 @@ export async function addDistributionAction(
   }
 }
 
-// export async function addDistribution({
-//   employeeId,
-//   riceId,
-//   quantityKg,
-//   createdById,
-//   imageUrl,
-// }: {
-//   employeeId: string;
-//   riceId: string;
-//   quantityKg: number;
-//   createdById: string;
-//   imageUrl?: string;
-// }) {
-//   const data = {
-//     employeeId,
-//     riceId,
-//     quantityKg,
-//     createdById,
-//     ...(imageUrl ? { imageUrl } : {}),
-//   };
+export async function editDistributionAction(id: string, formData: FormData): Promise<{ message: string }> {
+  const { userId } = auth();
+  try {
+    const rawData = Object.fromEntries(formData);
+    const validatedFields = distributionSchema.parse(rawData);
+    // Convert dateGiven string into a Date object
+    const dateGivenValue = validatedFields.dateGiven
+      ? new Date(validatedFields.dateGiven)
+      : undefined;
 
-//   return db.employeeDistribution.create({ data });
-// }
+    const distribution = await db.employeeDistribution.update({
+      where: { id},
+      data: { ...validatedFields,
+              dateGiven: dateGivenValue, 
+              createdById: userId || "",
+              riceId: validatedFields.riceId 
+            },
+      include: {
+        createdBy: true,
+        rice: true
+      },
+    });
+
+    revalidatePath("/distribution");
+    return {
+      message: JSON.stringify([
+        { message: "Rice distribution updated successfully" },
+        { result: "success" },
+        { distribution },
+      ]),
+    };
+  } catch (err: unknown) {
+    console.error("Update error:", err);
+    return renderError(err);
+  }
+}
+
+export async function deleteDistributionItemAction(id: string): Promise<{ message: string }> {
+  try {
+    await db.employeeDistribution.delete({
+      where: { id },
+    });
+    revalidatePath("/inventory");
+    return {
+      message: JSON.stringify([
+        { message: "Rice distribution deleted successfully" },
+        { result: "success" },
+      ])
+    };
+  } catch (err: unknown) {
+      return renderError(err);
+  }
+}

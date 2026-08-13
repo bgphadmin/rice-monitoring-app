@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { addDistributionAction } from "@/utils/actions"
+import { EditDistributionItem } from "./EditDistributionItem"
 
 interface RiceOption {
     id: string
@@ -32,7 +33,7 @@ const defaultFormState = {
     firstName: "",
     lastName: "",
     employeeId: "",
-    riceName: "",
+    riceId: "",
     quantityKg: "",
     comment: "",
     dateGiven: new Date().toISOString().slice(0, 10),
@@ -41,6 +42,7 @@ const defaultFormState = {
 export default function DistributionManager({ initialRows, riceOptions }: DistributionManagerProps) {
     const [rows, setRows] = React.useState<DistributionRow[]>(initialRows)
     const [formValues, setFormValues] = React.useState(defaultFormState)
+    const [selectedRow, setSelectedRow] = React.useState<DistributionRow | null>(null);
 
     const handleFormChange = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -58,6 +60,18 @@ export default function DistributionManager({ initialRows, riceOptions }: Distri
         }
     }
 
+    const handleEditSuccess = (updated: DistributionRow) => {
+        setRows((prev) =>
+            prev.map((row) => row.id === updated.id ? updated : row)
+        );
+        setSelectedRow(null);
+    };
+
+    const handleDeleteSuccess = (deletedId: string) => {
+        setRows((prev) => prev.filter((row) => row.id !== deletedId)); // ✅ remove row
+        setSelectedRow(null);
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -69,7 +83,7 @@ export default function DistributionManager({ initialRows, riceOptions }: Distri
                     </AlertDialogTrigger>
                     <AlertDialogContent className="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg">
                         <AlertDialogHeader>
-                            <AlertDialogTitle className="text-lg font-semibold">Add Distribution</AlertDialogTitle>
+                            <AlertDialogTitle className="text-lg font-semibold">Add Rice Distribution</AlertDialogTitle>
                         </AlertDialogHeader>
                         <FormContainer action={addDistributionAction} onSuccess={handleAddSuccess}>
                             {({ loading }) => (
@@ -90,15 +104,15 @@ export default function DistributionManager({ initialRows, riceOptions }: Distri
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-slate-700">Rice Variety</label>
                                             <select
-                                                name="riceName"
-                                                value={formValues.riceName}
+                                                name="riceId"
+                                                value={formValues.riceId}
                                                 onChange={handleFormChange}
                                                 required
                                                 className="flex h-11 w-full rounded-xl border border-input bg-input/30 px-3 py-2 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                                             >
                                                 <option value="">Select a rice variety</option>
                                                 {riceOptions.map((rice) => (
-                                                    <option key={rice.id} value={rice.name}>
+                                                    <option key={rice.id} value={rice.id}>
                                                         {rice.name}
                                                     </option>
                                                 ))}
@@ -139,7 +153,23 @@ export default function DistributionManager({ initialRows, riceOptions }: Distri
                 </AlertDialog>
             </div>
 
-            <DistributionGrid distributions={rows} />
+            <DistributionGrid
+                distributions={rows}
+                onRowClick={(row) => {
+                    setSelectedRow(row)
+                }} // row click opens dialog 
+            />
+
+            {selectedRow && (
+                <EditDistributionItem
+                    item={selectedRow}
+                    open={true}
+                    onOpenChange={(open) => !open && setSelectedRow(null)}
+                    onEditSuccess={handleEditSuccess}
+                    onDeleteSuccess={handleDeleteSuccess}
+                    riceOptions={riceOptions}
+                />
+            )}
         </div>
     )
 }
