@@ -1,4 +1,4 @@
-export default function SummaryCards() {
+export default function SummaryCards({totalStock}: {totalStock: number}) {
   const stats = [
     { label: "Total Stock", value: "8,250 kg" },
     { label: "Low Stock", value: "3 Items" },
@@ -14,7 +14,7 @@ export default function SummaryCards() {
           className="bg-white rounded-lg shadow p-4 text-center"
         >
           <p className="text-sm text-gray-500">{stat.label}</p>
-          <p className="text-xl font-bold text-green-700">{stat.value}</p>
+          <p className="text-xl font-bold text-green-700">{totalStock}</p>
         </div>
       ))}
     </div>

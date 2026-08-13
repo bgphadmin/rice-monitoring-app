@@ -8,16 +8,14 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Cell,
 } from "recharts";
 
-const data = [
-  { name: "Jasmine Rice", stock: 120 },
-  { name: "Brown Rice", stock: 75 },
-//   { name: "Basmati Rice", stock: 300 },
-//   { name: "Sticky Rice", stock: 450 },
-];
+type Props = {
+  data: { name: string, stockKg: number }[];
+};
 
-export default function InventoryChart() {
+export default function InventoryChart({ data }: Props) {
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h3 className="text-lg font-semibold mb-4">Inventory Overview</h3>
@@ -28,10 +26,17 @@ export default function InventoryChart() {
             <XAxis dataKey="name" />
             <YAxis />
             <Tooltip />
-            <Bar dataKey="stock" fill="#16a34a" />
+            <Bar dataKey="stockKg">
+              {data.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={entry.stockKg < 100 ? "#dc2626" : "#16a34a"}
+                />
+              ))}
+            </Bar>
           </BarChart>
         </ResponsiveContainer>
       </div>
-    </div>
+    </div >
   );
 }

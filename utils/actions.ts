@@ -9,25 +9,24 @@ import { auth } from "@clerk/nextjs/server";
 import verifyUser from "./userValidation";
 import { ZodError } from "zod";
 
-/* ------------------ Rice Actions ------------------ */
 export const renderError = (error: unknown): { message: string } => {
-    if (error instanceof ZodError) {
-      console.log("ZOD Error:", error);
-      return {
-        message: JSON.stringify([
-          { message: "Error: " + JSON.parse(error.message)[0].message || error.message },
-          { result: "error" },
-        ])
-      };
-    } else if (error instanceof Error) {
-      console.log("Error: ", error);
-      return {
-        message: JSON.stringify([
-          { message: "Catch Error: " + error.message },
-          { result: "error" },
-        ])
-      };
-    } else {
+  if (error instanceof ZodError) {
+    console.log("ZOD Error:", error);
+    return {
+      message: JSON.stringify([
+        { message: "Error: " + JSON.parse(error.message)[0].message || error.message },
+        { result: "error" },
+      ])
+    };
+  } else if (error instanceof Error) {
+    console.log("Error: ", error);
+    return {
+      message: JSON.stringify([
+        { message: "Catch Error: " + error.message },
+        { result: "error" },
+      ])
+    };
+  } else {
     console.log("Error:", error);
     return {
       message: JSON.stringify([
@@ -35,9 +34,10 @@ export const renderError = (error: unknown): { message: string } => {
         { result: "error" },
       ])
     };
-    }
+  }
 };
 
+/* ------------------ Rice Actions ------------------ */
 export async function getRiceItems() {
   return db.rice.findMany({ 
     include: {
@@ -47,6 +47,20 @@ export async function getRiceItems() {
       name: "asc",
     },
   });
+}
+
+// get rice items with stock and total stock
+export async function getRiceItemsWithStock() {
+  const riceItems = await db.rice.findMany({
+    select: { id: true, name: true, stockKg: true },
+    orderBy: { name: "asc" },
+  });
+  const converted = riceItems.map(r => ({
+    ...r,
+    stockKg: r.stockKg.toNumber(),   // convert Decimal → number
+  }));
+  const totalStock = converted.reduce((sum, r) => sum + r.stockKg, 0);
+  return { riceItems: converted, totalStock };
 }
 
 // get rice options

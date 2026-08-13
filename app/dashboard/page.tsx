@@ -1,13 +1,30 @@
+'use client'
+
 import InventoryChart from "@/components/dashboard/InventoryChart";
 import SummaryCards from "@/components/dashboard/SummaryCards";
+import { getRiceItemsWithStock } from "@/utils/actions";
+import { useEffect, useState } from "react";
 
 
 export default function DashboardPage() {
+
+  const [riceData, setRiceData] = useState<{ name: string; stockKg: number }[]>([]);
+  const [totalStock, setTotalStock] = useState<number>(0);
+
+  useEffect(() => {
+    const fetchRiceData = async () => {
+      const { riceItems, totalStock } = await getRiceItemsWithStock();
+      setRiceData(riceItems);
+      setTotalStock(totalStock);
+    };
+    fetchRiceData();
+  }, []);
+
   return (
     <section className="space-y-8">
       <h2 className="text-2xl font-bold text-green-700">Dashboard Overview</h2>
-      <SummaryCards />
-      <InventoryChart />
+      <SummaryCards totalStock={totalStock} />
+      <InventoryChart data={riceData} />
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold mb-4">Low Stock Alerts</h3>
         <ul className="space-y-2 text-sm text-gray-700">
