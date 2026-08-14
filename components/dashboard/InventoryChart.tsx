@@ -12,7 +12,7 @@ import {
 } from "recharts";
 
 type Props = {
-  data: { name: string, stockKg: number }[];
+  data: { name: string, stockKg: number, reorderLevel: number }[];
 };
 
 export default function InventoryChart({ data }: Props) {
@@ -30,12 +30,22 @@ export default function InventoryChart({ data }: Props) {
               {data.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={entry.stockKg < 100 ? "#dc2626" : "#16a34a"}
+                  fill={entry.stockKg < entry.reorderLevel ? "#dc2626" : "#16a34a"}
                 />
               ))}
             </Bar>
           </BarChart>
         </ResponsiveContainer>
+      </div>      {/* Custom Legend */}
+      <div className="flex items-center space-x-4 mt-4 text-sm text-gray-700">
+        <div className="flex items-center space-x-1">
+          <span className="w-3 h-3 bg-red-600 inline-block rounded-sm"></span>
+          <span>At or below reorder threshold</span>
+        </div>
+        <div className="flex items-center space-x-1">
+          <span className="w-3 h-3 bg-green-600 inline-block rounded-sm"></span>
+          <span>Stock is healthy</span>
+        </div>
       </div>
     </div >
   );

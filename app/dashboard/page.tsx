@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
 
-  const [riceData, setRiceData] = useState<{ name: string; stockKg: number }[]>([]);
+  const [riceData, setRiceData] = useState<{ name: string; stockKg: number; reorderLevel: number }[]>([]);
   const [totalStock, setTotalStock] = useState<number>(0);
 
   useEffect(() => {

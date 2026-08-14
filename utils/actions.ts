@@ -52,12 +52,13 @@ export async function getRiceItems() {
 // get rice items with stock and total stock
 export async function getRiceItemsWithStock() {
   const riceItems = await db.rice.findMany({
-    select: { id: true, name: true, stockKg: true },
+    select: { id: true, name: true, stockKg: true, reorderLevel: true },
     orderBy: { name: "asc" },
   });
   const converted = riceItems.map(r => ({
     ...r,
     stockKg: r.stockKg.toNumber(),   // convert Decimal → number
+    reorderLevel: r.reorderLevel.toNumber(),
   }));
   const totalStock = converted.reduce((sum, r) => sum + r.stockKg, 0);
   return { riceItems: converted, totalStock };
