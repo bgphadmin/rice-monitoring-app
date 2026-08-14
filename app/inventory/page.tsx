@@ -13,7 +13,6 @@ const InventoryManager = dynamic(
     }
 )
 
-
 const InventoryPage = async () => {
     const isSuperuser = await verifyUser("SUPERUSER");
     const isAdmin = await verifyUser("ADMIN");

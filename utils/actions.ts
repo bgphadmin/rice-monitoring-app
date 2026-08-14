@@ -8,6 +8,7 @@ import { userSchema } from "./validation/userSchema";
 import { auth } from "@clerk/nextjs/server";
 import verifyUser from "./userValidation";
 import { ZodError } from "zod";
+import { stockLogSchema } from "./validation/stockLogSchema";
 
 export const renderError = (error: unknown): { message: string } => {
   if (error instanceof ZodError) {
@@ -171,33 +172,6 @@ export async function deleteRiceItemAction(id: string): Promise<{ message: strin
     } else {
       return renderError(err);
     } 
-      
-      
-      
-      
-    //   if (err instanceof ZodError) {
-    //   return {
-    //     message: 
-    //       JSON.stringify([
-    //         { message: "Error deleting rice item: " + JSON.parse(err.message)[0].message || err.message },
-    //         { result: "error" }
-    //       ])
-    //   };
-    // } else if (err instanceof Error) {
-    //   return {
-    //     message: JSON.stringify([
-    //       { message: "Error deleting rice item: " + err.message },
-    //       { result: "error" },
-    //     ])
-    //   };
-    // } else {
-    //   return {
-    //     message: JSON.stringify([
-    //       { message: "Unknown error occurred" },
-    //       { result: "error" },
-    //     ])
-    //   };
-    // }
   }
 }
 
@@ -344,5 +318,113 @@ export async function deleteDistributionItemAction(id: string): Promise<{ messag
     };
   } catch (err: unknown) {
       return renderError(err);
+  }
+}
+
+/* ------------------ Stock Logs Actions ------------------ */
+
+export async function getStockLogs() {
+  return db.riceStockLog.findMany({ 
+    include: {
+      rice: true,
+      createdBy: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+}
+
+
+export async function getStockLogs2({
+  riceId,
+  action,
+  startDate,
+  endDate,
+  skip = 0,
+  take = 10,
+}: {
+  riceId?: string;
+  action?: "ADD" | "REMOVE";
+  startDate?: Date;
+  endDate?: Date;
+  skip?: number;
+  take?: number;
+}) {
+  const stockLogs = db.riceStockLog.findMany({
+    where: { 
+      riceId, 
+      action,
+      createdAt: {
+        gte: startDate,
+        lte: endDate,
+      }, 
+    },
+    include: {
+      createdBy: true,
+      rice: true,
+    },
+    orderBy: { createdAt: "desc" },
+    skip,
+    take,
+  })
+  const stocks = ( await stockLogs).map((log) => ({ ...log, createdAt: log.createdAt.toISOString(), quantityKg: log.quantityKg.toNumber() }));
+
+  const total = await db.riceStockLog.count({
+    where: {
+      riceId,
+      action,
+      createdAt: {
+        gte: startDate,
+        lte: endDate,
+      },
+    },
+  });
+  return { stocks, total };
+}
+
+
+export async function addStockLogAction(
+  prevState: unknown,
+  formData: FormData
+): Promise<{ message: string }> {
+  const { userId } = auth();
+
+  try {
+    const rawData = Object.fromEntries(formData);
+    const validatedFields = stockLogSchema.parse(rawData);
+    const riceRecord = await db.rice.findUnique({
+      where: { id: validatedFields.riceId },
+    });
+
+    if (!riceRecord) {
+      return { message: '[{"message": "Rice variety not found"}, {"result": "error"}]' };
+    }
+
+    const stockLog = await db.riceStockLog.create({
+      data: {
+        action: validatedFields.action,
+        quantityKg: validatedFields.quantityKg,
+        riceId: validatedFields.riceId,
+        comment: validatedFields.comment,
+        createdById: userId || "",
+      },
+      include: {
+        rice: true,
+        createdBy: true,
+      },
+    });
+
+    revalidatePath("/stockLog");
+    return {
+      message: JSON.stringify([
+        { message: "Stock log added successfully" },
+        { result: "success" },
+        { stockLog },
+      ]),
+    };
+  } catch (error: unknown) {
+    console.error("Error adding distribution:", error);
+    return renderError(error);
   }
 }

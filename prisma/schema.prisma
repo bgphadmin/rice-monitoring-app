@@ -33,6 +33,7 @@ model User {
   // Relations
   riceAdded        Rice[]                 @relation("RiceAddedBy")
   distributionLogs EmployeeDistribution[] @relation("DistributionCreatedBy")
+  stockLogs        RiceStockLog[]         @relation("StockCreatedBy")
 }
 
 model Rice {
@@ -46,6 +47,7 @@ model Rice {
   addedBy       User                   @relation("RiceAddedBy", fields: [addedById], references: [clerkId])
   addedById     String
   distributions EmployeeDistribution[]
+  stockLogs     RiceStockLog[]
 }
 
 model EmployeeDistribution {
@@ -62,4 +64,23 @@ model EmployeeDistribution {
   createdBy   User     @relation("DistributionCreatedBy", fields: [createdById], references: [clerkId])
   createdById String
   imageUrl    String?
+}
+
+model RiceStockLog {
+  id         String      @id @default(uuid())
+  rice       Rice        @relation(fields: [riceId], references: [id])
+  riceId     String
+  quantityKg Decimal     @db.Decimal(10, 2) // positive for add, negative for remove
+  action     StockAction
+  comment    String?
+  createdAt  DateTime    @default(now())
+
+  // User who performed the action
+  createdBy   User   @relation("StockCreatedBy", fields: [createdById], references: [clerkId])
+  createdById String
+}
+
+enum StockAction {
+  ADD
+  REMOVE
 }

@@ -19,3 +19,13 @@ export type DistributionRow = {
   dateGiven: string;
   createdBy: { firstName: string; lastName: string };
 };
+
+export type StockLog = {
+  id: string;
+  rice: { name: string; id: string };
+  quantityKg: number;
+  action: "ADD" | "REMOVE";
+  comment?: string | null;
+  createdAt: string;
+  createdBy: { firstName: string; lastName: string };
+};
