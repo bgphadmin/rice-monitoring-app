@@ -401,6 +401,19 @@ export async function addStockLogAction(
       return { message: '[{"message": "Rice variety not found"}, {"result": "error"}]' };
     }
 
+    // 🔑 Validation: prevent removing more than available
+    if (
+      validatedFields.action === "REMOVE" &&
+      validatedFields.quantityKg > riceRecord.stockKg.toNumber()
+    ) {
+      return {
+        message: JSON.stringify([
+          { message: "Cannot remove more than current stock" },
+          { result: "error" },
+        ]),
+      };
+    }
+
     // 🔑 Transaction: create log + update rice stock
     const result = await db.$transaction(async (tx) => {
       const stockLog = await tx.riceStockLog.create({

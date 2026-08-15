@@ -30,7 +30,7 @@ export default function InventoryChart({ data }: Props) {
               {data.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={entry.stockKg < entry.reorderLevel ? "#dc2626" : "#16a34a"}
+                  fill={entry.stockKg <= entry.reorderLevel ? "#dc2626" : "#16a34a"}
                 />
               ))}
             </Bar>
