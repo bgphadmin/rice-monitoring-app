@@ -227,30 +227,53 @@ export async function addDistributionAction(
   try {
     const rawData = Object.fromEntries(formData);
     const validatedFields = distributionSchema.parse(rawData);
-
     const riceRecord = await db.rice.findUnique({
       where: { id: validatedFields.riceId },
     });
+
+        // 🔑 Validation: prevent removing more than availables
+    if ( riceRecord && validatedFields.quantityKg > riceRecord.stockKg.toNumber()) {
+      return {
+        message: JSON.stringify([
+          { message: "Cannot distribute rice more than current stock" },
+          { result: "error" },
+        ]),
+      };
+    }
 
     if (!riceRecord) {
       return { message: '[{"message": "Rice variety not found"}, {"result": "error"}]' };
     }
 
-    const distribution = await db.employeeDistribution.create({
-      data: {
-        firstName: validatedFields.firstName,
-        lastName: validatedFields.lastName,
-        employeeId: validatedFields.employeeId,
-        riceId: validatedFields.riceId,
-        quantityKg: validatedFields.quantityKg,
-        comment: validatedFields.comment,
-        dateGiven: new Date(`${validatedFields.dateGiven}T00:00:00.000Z`),
-        createdById: userId || "",
-      },
-      include: {
-        rice: true,
-        createdBy: true,
-      },
+    // 🔑 Transaction: create distribution + update rice stock
+    const result = await db.$transaction(async (tx) => {
+      const distribution = await tx.employeeDistribution.create({
+        data: {
+          firstName: validatedFields.firstName,
+          lastName: validatedFields.lastName,
+          employeeId: validatedFields.employeeId,
+          riceId: validatedFields.riceId,
+          quantityKg: validatedFields.quantityKg,
+          comment: validatedFields.comment,
+          dateGiven: new Date(`${validatedFields.dateGiven}T00:00:00.000Z`),
+          createdById: userId || "",
+        },
+        include: {
+          rice: true,
+          createdBy: true,
+        },
+      });
+
+      await tx.rice.update({
+        where: { id: validatedFields.riceId },
+        data: {
+          stockKg: {
+            decrement: validatedFields.quantityKg, // distribution always reduces stock
+          },
+        },
+      });
+
+      return distribution;
     });
 
     revalidatePath("/distribution");
@@ -258,7 +281,7 @@ export async function addDistributionAction(
       message: JSON.stringify([
         { message: "Distribution added successfully" },
         { result: "success" },
-        { distribution },
+        { distribution: result },
       ]),
     };
   } catch (error: unknown) {
