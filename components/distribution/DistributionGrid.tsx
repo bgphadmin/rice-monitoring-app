@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
+import mlaTimeConvert from "@/utils/mlaTimeConvert"
 
 export type DistributionRow = {
     id: string
@@ -92,13 +93,7 @@ const columns: ColumnDef<typeof features, DistributionRow>[] = [
         sortFn: (a, b) => a.original.dateGiven.localeCompare(b.original.dateGiven),
         cell: (info) => {
             const value = info.getValue() as string
-            const date = new Date(value)
-            return new Intl.DateTimeFormat("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                timeZone: "UTC",
-            }).format(date)
+            return mlaTimeConvert(value)
         },
     },
     {

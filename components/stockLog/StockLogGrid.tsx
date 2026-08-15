@@ -24,6 +24,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { StockLog } from "@/utils/types"
+import mlaTimeConvert from "@/utils/mlaTimeConvert"
 
 const features = tableFeatures({
     rowSortingFeature,
@@ -76,16 +77,7 @@ const columns: ColumnDef<typeof features, StockLog>[] = [
         sortFn: (a, b) => a.original.createdAt.localeCompare(b.original.createdAt),
         cell: (info) => {
             const value = info.getValue() as string
-            const date = new Date(value)
-            return new Intl.DateTimeFormat("en-US", {
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: true,
-                timeZone: "UTC",
-            }).format(date)
+            return mlaTimeConvert(value)
         },
     },
 ]
