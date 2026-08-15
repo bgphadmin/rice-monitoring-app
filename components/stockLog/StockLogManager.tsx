@@ -50,7 +50,7 @@ export default function StockLogManager({ initialRows, riceOptions = [] }: Stock
 
     const handleAddSuccess = (state: { message: string }) => {
         const parsed = JSON.parse(state.message)
-        const stockLog = parsed[2]?.stockLog as StockLog | undefined
+        const stockLog = parsed[2]?.result as StockLog | undefined
         if (stockLog) {
             setRows((prev) => [stockLog, ...prev])
             setFormValues(defaultFormState)
@@ -87,10 +87,6 @@ export default function StockLogManager({ initialRows, riceOptions = [] }: Stock
                             {({ loading }) => (
                                 <>
                                     <div className="grid gap-4 sm:grid-cols-2">
-                                        {/* <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-700">Rice Name</label>
-                                            <Input name="name" value={formValues.riceId} onChange={handleFormChange} required />
-                                        </div> */}
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-slate-700">Rice Variety</label>
                                             <select

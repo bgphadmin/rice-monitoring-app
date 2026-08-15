@@ -401,18 +401,37 @@ export async function addStockLogAction(
       return { message: '[{"message": "Rice variety not found"}, {"result": "error"}]' };
     }
 
-    const stockLog = await db.riceStockLog.create({
-      data: {
-        action: validatedFields.action,
-        quantityKg: validatedFields.quantityKg,
-        riceId: validatedFields.riceId,
-        comment: validatedFields.comment,
-        createdById: userId || "",
-      },
-      include: {
-        rice: true,
-        createdBy: true,
-      },
+    // 🔑 Transaction: create log + update rice stock
+    const result = await db.$transaction(async (tx) => {
+      const stockLog = await tx.riceStockLog.create({
+        data: {
+          action: validatedFields.action,
+          quantityKg: validatedFields.quantityKg,
+          riceId: validatedFields.riceId,
+          comment: validatedFields.comment,
+          createdById: userId || "",
+        },
+        include: {
+          rice: true,
+          createdBy: true,
+        },
+      });
+
+      const adjustment =
+        validatedFields.action === "ADD"
+          ? validatedFields.quantityKg
+          : -validatedFields.quantityKg;
+
+      await tx.rice.update({
+        where: { id: validatedFields.riceId },
+        data: {
+          stockKg: {
+            increment: adjustment,
+          },
+        },
+      });
+
+      return stockLog;
     });
 
     revalidatePath("/stockLog");
@@ -420,7 +439,7 @@ export async function addStockLogAction(
       message: JSON.stringify([
         { message: "Stock log added successfully" },
         { result: "success" },
-        { stockLog },
+        { result: result },
       ]),
     };
   } catch (error: unknown) {
