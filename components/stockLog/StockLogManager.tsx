@@ -135,7 +135,7 @@ export default function StockLogManager({ initialRows, riceOptions = [] }: Stock
                                             Cancel
                                         </AlertDialogCancel>
                                         <LoadingButton loading={loading}>
-                                            Add Rice
+                                            Submit
                                         </LoadingButton>
                                     </AlertDialogFooter>
                                 </>
