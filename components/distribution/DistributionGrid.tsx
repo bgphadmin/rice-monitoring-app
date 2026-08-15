@@ -93,7 +93,7 @@ const columns: ColumnDef<typeof features, DistributionRow>[] = [
         sortFn: (a, b) => a.original.dateGiven.localeCompare(b.original.dateGiven),
         cell: (info) => {
             const value = info.getValue() as string
-            return mlaTimeConvert(value)
+            return mlaTimeConvert(value, true)
         },
     },
     {

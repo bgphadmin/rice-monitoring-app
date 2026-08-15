@@ -77,7 +77,7 @@ const columns: ColumnDef<typeof features, StockLog>[] = [
         sortFn: (a, b) => a.original.createdAt.localeCompare(b.original.createdAt),
         cell: (info) => {
             const value = info.getValue() as string
-            return mlaTimeConvert(value)
+            return mlaTimeConvert(value, false)
         },
     },
 ]
