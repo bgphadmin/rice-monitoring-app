@@ -23,12 +23,12 @@ export default async function RiceList() {
                     {riceItems.map((rice) => (
                         <tr
                             key={rice.id}
-                            className={`border-b ${rice.stockKg.toNumber() <= rice.reorderLevel.toNumber() ? "bg-pink-200" : ""
+                            className={`border-b ${rice.stockKg <= rice.reorderLevel ? "bg-pink-200" : ""
                                 }`}
                         >
                             <td className="px-2 py-1">{rice.name}</td>
-                            <td className="px-2 py-1">{rice.stockKg.toNumber().toFixed(2)}</td>
-                            <td className="px-2 py-1">{rice.reorderLevel.toNumber().toFixed(2)}</td>
+                            <td className="px-2 py-1">{rice.stockKg.toFixed(2)}</td>
+                            <td className="px-2 py-1">{rice.reorderLevel.toFixed(2)}</td>
                             <td className="px-2 py-1 hidden md:table-cell">{rice.comment ?? ""}</td>
                             <td className="px-2 py-1 text-right">
                                 <div className="inline-flex flex-col md:flex-row gap-1">

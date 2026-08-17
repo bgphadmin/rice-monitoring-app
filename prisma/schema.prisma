@@ -39,8 +39,8 @@ model User {
 model Rice {
   id            String                 @id @default(uuid())
   name          String                 @unique
-  stockKg       Decimal                @db.Decimal(10, 2)
-  reorderLevel  Decimal                @db.Decimal(10, 2)
+  stockKg       Float                
+  reorderLevel  Float                
   comment       String?
   pricePerKilo  Decimal?               @db.Decimal(10, 2)
   updatedAt     DateTime               @updatedAt

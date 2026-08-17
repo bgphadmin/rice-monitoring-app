@@ -82,7 +82,6 @@ export default function InventoryManager({ initialRows, total }: InventoryManage
     const handleDeleteSuccess = (deletedId: string) => {
         setRows((prev) => prev.filter((row) => row.id !== deletedId)); // ✅ remove row
         setSelectedRow(null);
-        // router.refresh();
     };
 
     return (
@@ -108,11 +107,11 @@ export default function InventoryManager({ initialRows, total }: InventoryManage
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-slate-700">Stock (kg)</label>
-                                            <Input type="number" step="0.5" name="stockKg" value={formValues.stockKg} onChange={handleFormChange} required />
+                                            <Input type="number" step="0.5" name="stockKg" value={formValues.stockKg} min="0" onChange={handleFormChange} required />
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-slate-700">Reorder Level</label>
-                                            <Input type="number" step="0.5" name="reorderLevel" value={formValues.reorderLevel} onChange={handleFormChange} required />
+                                            <Input type="number" step="0.5" name="reorderLevel" value={formValues.reorderLevel} min="0" onChange={handleFormChange} required />
                                         </div>
                                         <div className="space-y-2 sm:col-span-2">
                                             <label className="text-sm font-medium text-slate-700">Comment</label>

@@ -88,7 +88,8 @@ export function EditRiceItem({
                     <label className="block text-sm font-medium text-gray-700">Stock (kg)</label>
                     <input
                         type="number"
-                        step="0.25"
+                        step="0.5"
+                        min="0"
                         name="stockKg"
                         defaultValue={item.stockKg}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
@@ -96,7 +97,8 @@ export function EditRiceItem({
                     <label className="block text-sm font-medium text-gray-700">Reorder Level (kg)</label>
                     <input
                         type="number"
-                        step="0.25"
+                        step="0.5"
+                        min="0"
                         name="reorderLevel"
                         defaultValue={item.reorderLevel}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"

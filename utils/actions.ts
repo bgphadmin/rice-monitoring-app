@@ -64,8 +64,8 @@ export async function getRiceItemsPerPage(pageIndex = 0, pageSize = 10) {
   const safeRows = rows.map((record) => ({
     id: record.id,
     name: record.name,
-    stockKg: record.stockKg.toNumber(),
-    reorderLevel: record.reorderLevel.toNumber(),
+    stockKg: record.stockKg,
+    reorderLevel: record.reorderLevel,
     comment: record.comment ?? null,
     addedBy: {
       firstName: record.addedBy.firstName,
@@ -85,8 +85,8 @@ export async function getRiceItemsWithStock() {
   });
   const converted = riceItems.map(r => ({
     ...r,
-    stockKg: r.stockKg.toNumber(),   // convert Decimal → number
-    reorderLevel: r.reorderLevel.toNumber(),
+    stockKg: r.stockKg,
+    reorderLevel: r.reorderLevel,
   }));
   const totalStock = converted.reduce((sum, r) => sum + r.stockKg, 0);
   return { riceItems: converted, totalStock };
@@ -284,7 +284,7 @@ export async function addDistributionAction(
     });
 
         // 🔑 Validation: prevent removing more than availables
-    if ( riceRecord && validatedFields.quantityKg > riceRecord.stockKg.toNumber()) {
+    if ( riceRecord && validatedFields.quantityKg > riceRecord.stockKg) {
       return {
         message: JSON.stringify([
           { message: "Cannot distribute rice more than current stock" },
@@ -496,7 +496,7 @@ export async function addStockLogAction(
     // 🔑 Validation: prevent removing more than available
     if (
       validatedFields.action === "REMOVE" &&
-      validatedFields.quantityKg > riceRecord.stockKg.toNumber()
+      validatedFields.quantityKg > riceRecord.stockKg
     ) {
       return {
         message: JSON.stringify([

@@ -127,7 +127,7 @@ export default function StockLogManager({ initialRows, riceOptions = [], total }
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-slate-700">Quantity (kg)</label>
-                                            <Input type="number" step="0.5" name="quantityKg" value={formValues.quantityKg} onChange={handleFormChange} required />
+                                            <Input type="number" step="0.5" name="quantityKg" min="1" value={formValues.quantityKg} onChange={handleFormChange} required />
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-slate-700">Action</label>
