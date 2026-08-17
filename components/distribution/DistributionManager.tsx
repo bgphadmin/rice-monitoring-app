@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { addDistributionAction } from "@/utils/actions"
+import { addDistributionAction, getDistributionsPerPage } from "@/utils/actions"
 import { EditDistributionItem } from "./EditDistributionItem"
 
 interface RiceOption {
@@ -27,6 +27,7 @@ interface RiceOption {
 interface DistributionManagerProps {
     initialRows: DistributionRow[]
     riceOptions: RiceOption[]
+    total: number
 }
 
 const defaultFormState = {
@@ -39,10 +40,33 @@ const defaultFormState = {
     dateGiven: new Date().toISOString().slice(0, 10),
 }
 
-export default function DistributionManager({ initialRows, riceOptions }: DistributionManagerProps) {
+export default function DistributionManager({ initialRows, riceOptions, total }: DistributionManagerProps) {
     const [rows, setRows] = React.useState<DistributionRow[]>(initialRows)
     const [formValues, setFormValues] = React.useState(defaultFormState)
     const [selectedRow, setSelectedRow] = React.useState<DistributionRow | null>(null);
+    const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 })
+
+
+    React.useEffect(() => {
+        async function fetchPage() {
+            const { safeRows } = await getDistributionsPerPage(pagination.pageIndex, pagination.pageSize)
+            setRows(safeRows.map((record) => ({
+                id: record.id,
+                firstName: record.firstName,
+                lastName: record.lastName,
+                employeeId: record.employeeId,
+                rice: { name: record.rice.name, id: record.rice.id },
+                quantityKg: record.quantityKg,
+                comment: record.comment || "",
+                dateGiven: record.dateGiven,
+                createdBy: {
+                    firstName: record.createdBy.firstName,
+                    lastName: record.createdBy.lastName,
+                }
+            })))
+        }
+        fetchPage()
+    }, [pagination])
 
     const handleFormChange = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -158,6 +182,9 @@ export default function DistributionManager({ initialRows, riceOptions }: Distri
                 onRowClick={(row) => {
                     setSelectedRow(row)
                 }} // row click opens dialog 
+                total={total}
+                pagination={pagination}
+                onPaginationChange={setPagination}
             />
 
             {selectedRow && (

@@ -50,6 +50,33 @@ export async function getRiceItems() {
   });
 }
 
+export async function getRiceItemsPerPage(pageIndex = 0, pageSize = 10) {
+  const [rows, total] = await Promise.all([
+    db.rice.findMany({
+      skip: pageIndex * pageSize,
+      take: pageSize,
+      orderBy: { updatedAt: "desc" },
+      include: { addedBy: true },
+    }),
+    db.rice.count(),
+  ])
+   // 🔑 Convert Decimal → number here
+  const safeRows = rows.map((record) => ({
+    id: record.id,
+    name: record.name,
+    stockKg: record.stockKg.toNumber(),
+    reorderLevel: record.reorderLevel.toNumber(),
+    comment: record.comment ?? null,
+    addedBy: {
+      firstName: record.addedBy.firstName,
+      lastName: record.addedBy.lastName,
+    }
+  }))
+  
+  return { safeRows, total };
+}; 
+
+
 // get rice items with stock and total stock
 export async function getRiceItemsWithStock() {
   const riceItems = await db.rice.findMany({
@@ -218,6 +245,31 @@ export async function getDistributions() {
   })
 }
 
+export async function getDistributionsPerPage(pageIndex = 0, pageSize = 10) {
+  const [rows, total] = await Promise.all([
+    db.employeeDistribution.findMany({
+      skip: pageIndex * pageSize,
+      take: pageSize,
+      orderBy: { dateGiven: "desc" },
+      include: { createdBy: true, rice: true },
+    }),
+    db.employeeDistribution.count(),
+  ])
+   // 🔑 Convert Decimal → number here
+  const safeRows = rows.map((record) => (
+    {
+      ...record,
+      dateGiven: record.dateGiven.toISOString(),
+      rice: { name: record.rice.name, id: record.rice.id },
+      createdBy: {
+        firstName: record.createdBy.firstName,
+        lastName: record.createdBy.lastName,
+    },
+  }))
+  return { safeRows, total };
+};
+
+
 export async function addDistributionAction(
   prevState: unknown,
   formData: FormData
@@ -346,16 +398,33 @@ export async function deleteDistributionItemAction(id: string): Promise<{ messag
 
 /* ------------------ Stock Logs Actions ------------------ */
 
-export async function getStockLogs() {
-  return db.riceStockLog.findMany({ 
-    include: {
-      rice: true,
-      createdBy: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+
+// app/actions/getStockLogs.ts
+export async function getStockLogs(pageIndex = 0, pageSize = 10) {
+  const [rows, total] = await Promise.all([
+    db.riceStockLog.findMany({
+      skip: pageIndex * pageSize,
+      take: pageSize,
+      orderBy: { createdAt: "desc" },
+      include: { rice: true, createdBy: true },
+    }),
+    db.riceStockLog.count(),
+  ])
+
+   // 🔑 Convert Decimal → number here
+  const safeRows = rows.map((record) => ({
+    id: record.id,
+    riceId: record.riceId,
+    quantityKg: record.quantityKg.toNumber(), // ✅ plain number
+    action: record.action,
+    comment: record.comment ?? null,
+    createdAt: record.createdAt.toISOString(),
+    createdById: record.createdById,
+    rice: record.rice,
+    createdBy: record.createdBy,
+  }))
+
+  return { safeRows, total }
 }
 
 

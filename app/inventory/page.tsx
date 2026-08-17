@@ -3,7 +3,7 @@ import SkeletonTable from "@/components/utils/SkeletonTable"
 import verifyUser from "@/utils/userValidation"
 import { redirect } from "next/navigation"
 import { InventoryRow } from "@/components/inventory/InventoryGrid"
-import { getRiceItems } from "@/utils/actions"
+import { getRiceItemsPerPage } from "@/utils/actions"
 
 const InventoryManager = dynamic(
     () => import("@/components/inventory/InventoryManager"),
@@ -19,12 +19,11 @@ const InventoryPage = async () => {
     if (!isSuperuser && !isAdmin) return redirect('/');
 
     // const distributions = await getDistributions()
-    const inventory = await getRiceItems()
+    const { safeRows: inventory, total } = await getRiceItemsPerPage(0, 10)
 
     const rows: InventoryRow[] = inventory.map((record) => ({
         id: record.id,
         name: record.name,
-        // convert Decimal to number
         stockKg: Number(record.stockKg),
         reorderLevel: Number(record.reorderLevel),
         comment: record.comment,
@@ -38,6 +37,7 @@ const InventoryPage = async () => {
         <section className="space-y-8">
             <InventoryManager
                 initialRows={rows}
+                total={total}
             />
         </section>
     )

@@ -16,12 +16,13 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { addRiceItem } from "@/utils/actions"
+import { addRiceItem, getRiceItemsPerPage } from "@/utils/actions"
 import { EditRiceItem } from "./EditRiceItem"
 import { InventoryRow } from "./InventoryGrid"
 
 interface InventoryManagerProps {
     initialRows: InventoryRow[]
+    total: number
 }
 
 const defaultFormState = {
@@ -31,10 +32,29 @@ const defaultFormState = {
     comment: "",
 }
 
-export default function InventoryManager({ initialRows }: InventoryManagerProps) {
+export default function InventoryManager({ initialRows, total }: InventoryManagerProps) {
     const [rows, setRows] = React.useState<InventoryRow[]>(initialRows)
     const [formValues, setFormValues] = React.useState(defaultFormState)
     const [selectedRow, setSelectedRow] = React.useState<InventoryRow | null>(null);
+    const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 })
+
+    React.useEffect(() => {
+        async function fetchPage() {
+            const { safeRows } = await getRiceItemsPerPage(pagination.pageIndex, pagination.pageSize)
+            setRows(safeRows.map((record) => ({
+                id: record.id,
+                name: record.name,
+                stockKg: record.stockKg,
+                reorderLevel: record.reorderLevel,
+                comment: record.comment || "",
+                addedBy: {
+                    firstName: record.addedBy.firstName,
+                    lastName: record.addedBy.lastName,
+                },
+            })))
+        }
+        fetchPage()
+    }, [pagination])
 
     const handleFormChange = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -115,7 +135,10 @@ export default function InventoryManager({ initialRows }: InventoryManagerProps)
             </div>
             <InventoryGrid
                 inventory={rows}
-                onRowClick={(row) => setSelectedRow(row)} // row click opens dialog 
+                onRowClick={(row) => setSelectedRow(row)}
+                total={total}
+                pagination={pagination}
+                onPaginationChange={setPagination}
             />
 
             {selectedRow && (

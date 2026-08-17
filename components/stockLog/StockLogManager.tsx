@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { addStockLogAction } from "@/utils/actions"
+import { addStockLogAction, getStockLogs } from "@/utils/actions"
 import StockLogGrid from "./StockLogGrid"
 import { StockLog } from "@/utils/types"
 import AddStockLogButton from "./AddStockLogButton"
@@ -27,6 +27,7 @@ interface RiceOption {
 interface StockLogManagerProps {
     initialRows: StockLog[]
     riceOptions: RiceOption[]
+    total: number
 }
 
 const defaultFormState = {
@@ -36,10 +37,30 @@ const defaultFormState = {
     comment: "",
 }
 
-export default function StockLogManager({ initialRows, riceOptions = [] }: StockLogManagerProps) {
+export default function StockLogManager({ initialRows, riceOptions = [], total }: StockLogManagerProps) {
     const [rows, setRows] = React.useState<StockLog[]>(initialRows)
     const [formValues, setFormValues] = React.useState(defaultFormState)
     // const [selectedRow, setSelectedRow] = React.useState<StockLog | null>(null);
+    const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 })
+
+    React.useEffect(() => {
+        async function fetchPage() {
+            const { safeRows } = await getStockLogs(pagination.pageIndex, pagination.pageSize)
+            setRows(safeRows.map((record) => ({
+                id: record.id,
+                rice: { name: record.rice.name, id: record.rice.id },
+                quantityKg: record.quantityKg,
+                action: record.action,
+                comment: record.comment || "",
+                createdAt: record.createdAt,
+                createdBy: {
+                    firstName: record.createdBy.firstName,
+                    lastName: record.createdBy.lastName,
+                },
+            })))
+        }
+        fetchPage()
+    }, [pagination])
 
     const handleFormChange = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -146,7 +167,10 @@ export default function StockLogManager({ initialRows, riceOptions = [] }: Stock
             </div>
             <StockLogGrid
                 stockLog={rows}
-                // onRowClick={(row) => setSelectedRow(row)} // row click opens dialog 
+                total={total}
+                pagination={pagination}
+                onPaginationChange={setPagination}
+            // onRowClick={(row) => setSelectedRow(row)} // row click opens dialog 
             />
 
             {/* {selectedRow && (

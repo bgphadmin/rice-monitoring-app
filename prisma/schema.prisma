@@ -57,7 +57,7 @@ model EmployeeDistribution {
   employeeId  String
   rice        Rice     @relation(fields: [riceId], references: [id])
   riceId      String
-  quantityKg  Int
+  quantityKg  Float
   comment     String?
   dateGiven   DateTime @default(now())
   // User who created this distribution entry

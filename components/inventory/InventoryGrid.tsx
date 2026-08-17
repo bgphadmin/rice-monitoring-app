@@ -1,16 +1,13 @@
 ﻿import * as React from "react"
 import {
-    ColumnDef,
-    createCoreRowModel,
-    createFilteredRowModel,
-    createSortedRowModel,
     flexRender,
-    globalFilteringFeature,
-    rowSortingFeature,
-    columnFilteringFeature,
     SortingState,
-    tableFeatures,
-    useTable,
+    useReactTable,
+    getCoreRowModel,
+    getFilteredRowModel,
+    getSortedRowModel,
+    getPaginationRowModel,
+    createColumnHelper,
 } from "@tanstack/react-table"
 import { ChevronDownIcon } from "@radix-ui/react-icons"
 import {
@@ -36,84 +33,76 @@ export type InventoryRow = {
     }
 }
 
-const features = tableFeatures({
-    rowSortingFeature,
-    globalFilteringFeature,
-    columnFilteringFeature,
-    coreRowModel: createCoreRowModel(),
-    filteredRowModel: createFilteredRowModel(),
-    sortedRowModel: createSortedRowModel(),
-    filterFns: {
-        fuzzy: (row, columnId, filterValue) => {
-            const value = row.getValue<unknown>(columnId)
-            return String(value).toLowerCase().includes(String(filterValue).toLowerCase())
-        },
-    },
-})
+const columnHelper = createColumnHelper<InventoryRow>()
 
-const columns: ColumnDef<typeof features, InventoryRow>[] = [
-    {
-        id: "status",
-        header: "Status",
-        cell: ({ row }) => {
-            const { stockKg, reorderLevel } = row.original;
-            const isLowStock = stockKg <= reorderLevel;
-
-            return isLowStock && (
-                <div className="flex items-center justify-center">
-                    <span className="relative flex h-3 w-3">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                        <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
-                    </span>
-                </div>
-            );
-        },
-    },
-    {
-        id: "name",
+const columns = [
+    columnHelper.accessor(
+        (row) => row.stockKg <= row.reorderLevel, // accessor returns boolean
+        {
+            id: "status",
+            header: "Status",
+            cell: (info) =>
+                info.getValue() ? (
+                    <div className="flex items-center justify-center">
+                        <span className="relative flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+                        </span>
+                    </div>
+                ) : null,
+            enableSorting: true,
+        }
+    ),
+    columnHelper.accessor("name", {
         header: "Variety",
-        sortFn: (a, b) => a.original.name.localeCompare(b.original.name),
-        accessorFn: (row: InventoryRow) => `${row.name}`,
-    },
-    {
-        accessorKey: "stockKg",
+    }),
+    columnHelper.accessor("stockKg", {
         header: "Stock (kg)",
-        sortFn: (a, b) => a.original.stockKg - b.original.stockKg,
-    },
-    {
-        accessorKey: "reorderLevel",
+    }),
+    columnHelper.accessor("reorderLevel", {
         header: "Reorder Level (kg)",
-        sortFn: (a, b) => a.original.reorderLevel - b.original.reorderLevel,
-    },
-    {
-        accessorKey: "comment",
+    }),
+    columnHelper.accessor("comment", {
         header: "Comments",
         cell: (info) => info.getValue() ?? "-",
-    },
-    {
-        id: "addedBy",
+    }),
+    columnHelper.accessor((row) => `${row.addedBy.firstName} ${row.addedBy.lastName}`, {
+        id: "createdBy",
         header: "Entered By",
-        sortFn: (a, b) => a.original.addedBy.firstName.localeCompare(b.original.addedBy.firstName),
-        accessorFn: (row: InventoryRow) => `${row.addedBy.firstName} ${row.addedBy.lastName}`
-    },
+    }),
 ]
 
-export default function InventoryGrid({ inventory, onRowClick }: { inventory: InventoryRow[]; onRowClick?: (row: InventoryRow) => void }) {
+interface InventoryGridProps {
+    inventory: InventoryRow[]
+    total: number
+    pagination: { pageIndex: number; pageSize: number }
+    onPaginationChange: React.Dispatch<
+        React.SetStateAction<{ pageIndex: number; pageSize: number }>
+    >
+    onRowClick?: (row: InventoryRow) => void
+}
+
+export default function InventoryGrid({
+    inventory,
+    total,
+    pagination,
+    onPaginationChange,
+    onRowClick, }: InventoryGridProps) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [globalFilter, setGlobalFilter] = React.useState("")
-
-    
-    const table = useTable({
-        features,
+    const table = useReactTable({
         data: inventory,
         columns,
-        state: {
-            sorting,
-            globalFilter,
-        },
+        state: { sorting, globalFilter, pagination },
         onSortingChange: setSorting,
         onGlobalFilterChange: setGlobalFilter,
-        globalFilterFn: "fuzzy",
+        onPaginationChange,
+        pageCount: Math.ceil(total / pagination.pageSize), // 👈 server-side page count
+        manualPagination: true, // 👈 tells TanStack we fetch data manually
+        getCoreRowModel: getCoreRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
     })
 
     return (
@@ -189,6 +178,26 @@ export default function InventoryGrid({ inventory, onRowClick }: { inventory: In
                         )}
                     </TableBody>
                 </Table>
+            </div>
+            {/* Pagination Controls */}
+            <div className="flex items-center justify-between">
+                <button
+                    onClick={() => table.previousPage()}
+                    disabled={!table.getCanPreviousPage()}
+                    className="px-3 py-1 bg-slate-300 rounded disabled:opacity-50"
+                >
+                    Previous
+                </button>
+                <span>
+                    Page {pagination.pageIndex + 1} of {table.getPageCount()}
+                </span>
+                <button
+                    onClick={() => table.nextPage()}
+                    disabled={!table.getCanNextPage()}
+                    className="px-3 py-1 bg-slate-300 rounded disabled:opacity-50"
+                >
+                    Next
+                </button>
             </div>
         </div>
     )

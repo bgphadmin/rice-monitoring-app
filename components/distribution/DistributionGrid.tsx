@@ -2,17 +2,14 @@
 
 import * as React from "react"
 import {
-    ColumnDef,
-    createCoreRowModel,
-    createFilteredRowModel,
-    createSortedRowModel,
     flexRender,
-    globalFilteringFeature,
-    rowSortingFeature,
-    columnFilteringFeature,
     SortingState,
-    tableFeatures,
-    useTable,
+    useReactTable,
+    getCoreRowModel,
+    getFilteredRowModel,
+    getSortedRowModel,
+    getPaginationRowModel,
+    createColumnHelper,
 } from "@tanstack/react-table"
 import { ChevronDownIcon } from "@radix-ui/react-icons"
 import {
@@ -45,80 +42,71 @@ export type DistributionRow = {
     }
 }
 
-const features = tableFeatures({
-    rowSortingFeature,
-    globalFilteringFeature,
-    columnFilteringFeature,
-    coreRowModel: createCoreRowModel(),
-    filteredRowModel: createFilteredRowModel(),
-    sortedRowModel: createSortedRowModel(),
-    filterFns: {
-        fuzzy: (row, columnId, filterValue) => {
-            const value = row.getValue<unknown>(columnId)
-            return String(value).toLowerCase().includes(String(filterValue).toLowerCase())
-        },
-    },
-})
 
-const columns: ColumnDef<typeof features, DistributionRow>[] = [
-    {
-        id: "employee",
-        header: "Employee",
-        sortFn: (a, b) => a.original.firstName.localeCompare(b.original.firstName),
-        accessorFn: (row: DistributionRow) => `${row.firstName} ${row.lastName}`,
-    },
-    {
-        accessorKey: "employeeId",
-        header: "Employee ID",
-        sortFn: (a, b) => a.original.employeeId.localeCompare(b.original.employeeId),
-    },
-    {
-        id: "rice",
+const columnHelper = createColumnHelper<DistributionRow>()
+
+const columns = [
+    columnHelper.accessor("firstName", {
+        header: "First Name",
+    }),
+    columnHelper.accessor("lastName", {
+        header: "Last Name",
+    }),
+    columnHelper.accessor("rice.name", {
         header: "Rice Type",
-        sortFn: (a, b) => a.original.rice.name.localeCompare(b.original.rice.name),
-        accessorFn: (row: DistributionRow) => row.rice.name,
-    },
-    {
-        accessorKey: "quantityKg",
+    }),
+    columnHelper.accessor("quantityKg", {
         header: "Quantity (kg)",
-    },
-    {
-        accessorKey: "comment",
-        header: "Comment",
-        cell: (info) => info.getValue() ?? "-",
-    },
-    {
-        accessorKey: "dateGiven",
+    }),
+    columnHelper.accessor("dateGiven", {
         header: "Date Given",
-        sortFn: (a, b) => a.original.dateGiven.localeCompare(b.original.dateGiven),
         cell: (info) => {
             const value = info.getValue() as string
             return mlaTimeConvert(value, true)
         },
-    },
-    {
+    }),
+    columnHelper.accessor("comment", {
+        header: "Comment",
+        cell: (info) => info.getValue() ?? "-",
+    }),
+    columnHelper.accessor((row) => `${row.createdBy.firstName} ${row.createdBy.lastName}`, {
         id: "createdBy",
         header: "Entered By",
-        sortFn: (a, b) => a.original.createdBy.firstName.localeCompare(b.original.createdBy.firstName),
-        accessorFn: (row: DistributionRow) => `${row.createdBy.firstName} ${row.createdBy.lastName}`,
-    },
+    }),
 ]
 
-export default function DistributionGrid({ distributions, onRowClick }: { distributions: DistributionRow[]; onRowClick?: (row: DistributionRow) => void }) {
+interface DistributionGridProps {
+    distributions: DistributionRow[]
+    total: number
+    pagination: { pageIndex: number; pageSize: number }
+    onPaginationChange: React.Dispatch<
+        React.SetStateAction<{ pageIndex: number; pageSize: number }>
+    >
+    onRowClick?: (row: DistributionRow) => void
+}
+
+export default function DistributionGrid({
+    distributions,
+    total,
+    pagination,
+    onPaginationChange,
+    onRowClick, }: DistributionGridProps) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [globalFilter, setGlobalFilter] = React.useState("")
 
-    const table = useTable({
-        features,
+    const table = useReactTable({
         data: distributions,
         columns,
-        state: {
-            sorting,
-            globalFilter,
-        },
+        state: { sorting, globalFilter, pagination },
         onSortingChange: setSorting,
         onGlobalFilterChange: setGlobalFilter,
-        globalFilterFn: "fuzzy",
+        onPaginationChange,
+        pageCount: Math.ceil(total / pagination.pageSize), // 👈 server-side page count
+        manualPagination: true, // 👈 tells TanStack we fetch data manually
+        getCoreRowModel: getCoreRowModel(),
+        getFilteredRowModel: getFilteredRowModel(),
+        getSortedRowModel: getSortedRowModel(),
+        getPaginationRowModel: getPaginationRowModel(),
     })
 
     return (
@@ -194,6 +182,26 @@ export default function DistributionGrid({ distributions, onRowClick }: { distri
                         )}
                     </TableBody>
                 </Table>
+            </div>
+            {/* Pagination Controls */}
+            <div className="flex items-center justify-between">
+                <button
+                    onClick={() => table.previousPage()}
+                    disabled={!table.getCanPreviousPage()}
+                    className="px-3 py-1 bg-slate-300 rounded disabled:opacity-50"
+                >
+                    Previous
+                </button>
+                <span>
+                    Page {pagination.pageIndex + 1} of {table.getPageCount()}
+                </span>
+                <button
+                    onClick={() => table.nextPage()}
+                    disabled={!table.getCanNextPage()}
+                    className="px-3 py-1 bg-slate-300 rounded disabled:opacity-50"
+                >
+                    Next
+                </button>
             </div>
         </div>
     )
