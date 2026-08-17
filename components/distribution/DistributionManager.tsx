@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { addDistributionAction, getDistributionsPerPage } from "@/utils/actions"
 import { EditDistributionItem } from "./EditDistributionItem"
+import { SortingState } from "@tanstack/react-table"
 
 interface RiceOption {
     id: string
@@ -44,29 +45,42 @@ export default function DistributionManager({ initialRows, riceOptions, total }:
     const [rows, setRows] = React.useState<DistributionRow[]>(initialRows)
     const [formValues, setFormValues] = React.useState(defaultFormState)
     const [selectedRow, setSelectedRow] = React.useState<DistributionRow | null>(null);
-    const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 })
 
+    const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 })
+    const [sorting, setSorting] = React.useState<SortingState>([])
+    const [globalFilter, setGlobalFilter] = React.useState("")
+    const [startDate, setStartDate] = React.useState("")
+    const [endDate, setEndDate] = React.useState("")
+    const [loading, setLoading] = React.useState(false)
+    const [error, setError] = React.useState<string | null>(null)
+    const [totalCount, setTotalCount] = React.useState(total)
 
     React.useEffect(() => {
         async function fetchPage() {
-            const { safeRows } = await getDistributionsPerPage(pagination.pageIndex, pagination.pageSize)
-            setRows(safeRows.map((record) => ({
-                id: record.id,
-                firstName: record.firstName,
-                lastName: record.lastName,
-                employeeId: record.employeeId,
-                rice: { name: record.rice.name, id: record.rice.id },
-                quantityKg: record.quantityKg,
-                comment: record.comment || "",
-                dateGiven: record.dateGiven,
-                createdBy: {
-                    firstName: record.createdBy.firstName,
-                    lastName: record.createdBy.lastName,
+            try {
+                setLoading(true); setError(null)
+                const { safeRows, total } = await getDistributionsPerPage({
+                    pageIndex: pagination.pageIndex,
+                    pageSize: pagination.pageSize,
+                    q: globalFilter, startDate, endDate, sort: sorting,
+                })
+                setRows(safeRows.map(r => ({
+                    id: r.id, firstName: r.firstName, lastName: r.lastName,
+                    employeeId: r.employeeId, rice: { name: r.rice.name, id: r.rice.id },
+                    quantityKg: r.quantityKg, comment: r.comment || "",
+                    dateGiven: r.dateGiven, createdBy: { firstName: r.createdBy.firstName, lastName: r.createdBy.lastName }
+                })))
+                setTotalCount(total)
+            } catch (err: unknown) {
+                if (err instanceof Error) {
+                    setError(err.message)
+                } else {
+                    setError("Unexpected error")
                 }
-            })))
+            } finally { setLoading(false) }
         }
         fetchPage()
-    }, [pagination])
+    }, [pagination, globalFilter, startDate, endDate, sorting])
 
     const handleFormChange = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -176,16 +190,29 @@ export default function DistributionManager({ initialRows, riceOptions, total }:
                     </AlertDialogContent>
                 </AlertDialog>
             </div>
+            {/* Filter controls */}
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                <Input placeholder="Search..." value={globalFilter} onChange={e => setGlobalFilter(e.target.value)} className="max-w-md" />
+                <div className="flex items-center gap-2">
+                    <label>From</label>
+                    <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
+                    <label>To</label>
+                    <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
+                    <button onClick={() => { setStartDate(""); setEndDate("") }} className="px-2 py-1 bg-slate-200 rounded text-sm">Clear</button>
+                </div>
+            </div>
 
             <DistributionGrid
                 distributions={rows}
-                onRowClick={(row) => {
-                    setSelectedRow(row)
-                }} // row click opens dialog 
-                total={total}
+                total={totalCount}
                 pagination={pagination}
                 onPaginationChange={setPagination}
+                onRowClick={row => setSelectedRow(row)}
+                sorting={sorting}
+                onSortingChange={setSorting}
             />
+            {loading && <div className="text-sm text-slate-500">Loading…</div>}
+            {error && <div className="text-sm text-red-600">{error}</div>}
 
             {selectedRow && (
                 <EditDistributionItem

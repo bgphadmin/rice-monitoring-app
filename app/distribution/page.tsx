@@ -19,7 +19,7 @@ const DistributionPage = async () => {
     const isAdmin = await verifyUser("ADMIN");
     if (!isSuperuser && !isAdmin) return redirect('/');
 
-    const { safeRows: distributions, total } = await getDistributionsPerPage(0, 10)
+    const { safeRows: distributions, total } = await getDistributionsPerPage({ pageIndex: 0, pageSize: 10 })
     const riceItems = await getRiceItems()
 
     const rows: DistributionRow[] = distributions.map((record) => ({

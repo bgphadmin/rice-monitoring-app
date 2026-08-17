@@ -9,6 +9,8 @@ import { auth } from "@clerk/nextjs/server";
 import verifyUser from "./userValidation";
 import { ZodError } from "zod";
 import { stockLogSchema } from "./validation/stockLogSchema";
+import { SortingState } from "@tanstack/react-table";
+import { Prisma } from "@prisma/client";
 
 export const renderError = (error: unknown): { message: string } => {
   if (error instanceof ZodError) {
@@ -245,15 +247,64 @@ export async function getDistributions() {
   })
 }
 
-export async function getDistributionsPerPage(pageIndex = 0, pageSize = 10) {
+interface DistributionQuery {
+  pageIndex: number 
+  pageSize?: number
+  q?: string
+  startDate?: string
+  endDate?: string
+  sort?: SortingState
+}
+
+export async function getDistributionsPerPage({
+  pageIndex = 0,
+  pageSize = 10,
+  q,
+  startDate,
+  endDate,
+  sort,
+}: DistributionQuery) {
+
+  const where: Prisma.EmployeeDistributionWhereInput = {}
+
+  // Build a DateTimeFilter separately
+  const dateFilter: Prisma.DateTimeFilter = {}
+  if (startDate) {
+    dateFilter.gte = new Date(startDate)
+  }
+  if (endDate) {
+    const end = new Date(endDate)
+    end.setHours(23, 59, 59, 999)
+    dateFilter.lte = end
+  }
+  if (Object.keys(dateFilter).length > 0) {
+    where.dateGiven = dateFilter
+  }  
+
+  if (q) {
+    where.OR = [
+      { firstName: { contains: q, mode: "insensitive" } },
+      { lastName: { contains: q, mode: "insensitive" } },
+      { rice: { name: { contains: q, mode: "insensitive" } } },
+    ]
+  }
+
+const orderBy: Prisma.EmployeeDistributionOrderByWithRelationInput =
+  sort && sort.length
+    ? sort[0].id === "rice.name"
+      ? { rice: { name: sort[0].desc ? "desc" : "asc" } }
+      : { [sort[0].id]: (sort[0].desc ? "desc" : "asc") as Prisma.SortOrder }
+    : { dateGiven: "desc" }
+
   const [rows, total] = await Promise.all([
     db.employeeDistribution.findMany({
       skip: pageIndex * pageSize,
       take: pageSize,
-      orderBy: { dateGiven: "desc" },
+      orderBy,
+      where,
       include: { createdBy: true, rice: true },
     }),
-    db.employeeDistribution.count(),
+    db.employeeDistribution.count({ where }),
   ])
    // 🔑 Convert Decimal → number here
   const safeRows = rows.map((record) => (
