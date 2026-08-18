@@ -416,7 +416,7 @@ export async function editDistributionAction(id: string, formData: FormData): Pr
 
       const newStock = rice.stockKg - diff;
       if (newStock < 0) {
-        throw new Error(`Insufficient rice stock. Available: ${rice.stockKg} kg`);
+        throw new Error(`Insufficient rice stock (${rice.name}). Available: ${rice.stockKg} kg`);
       }
 
       // Update distribution

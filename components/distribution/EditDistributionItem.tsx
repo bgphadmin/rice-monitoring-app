@@ -142,12 +142,14 @@ export function EditDistributionItem({
                         defaultValue={item.employeeId}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
+                    <input type="hidden" name="riceId" value={item.rice.id} />
                     <label className="block text-sm font-medium text-gray-700"> Rice Variety</label>
                     <select
-                        name="riceId"
+                        // name="riceId"
                         defaultValue={item.rice.id}
+                        // value={item.rice.name}
+                        disabled
                         id="name"
-                        // id="name"
                         required
                         className="flex h-11 w-full rounded-xl border border-input bg-input/30 px-3 py-2 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                     >
@@ -158,6 +160,7 @@ export function EditDistributionItem({
                             </option>
                         ))}
                     </select>
+                    <label className="block text-sm font-medium text-gray-700">Quantity (kg)</label>
                     <input
                         type="number"
                         name="quantityKg"
