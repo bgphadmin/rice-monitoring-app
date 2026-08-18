@@ -52,6 +52,7 @@ export default async function RootLayout({
             position="top-right"
             toastOptions={{
               // Default styles for all toasts
+              duration: 5000,
               style: {
                 borderRadius: "8px",
                 background: "#333",

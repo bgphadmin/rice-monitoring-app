@@ -25,7 +25,7 @@ export const renderError = (error: unknown): { message: string } => {
     console.log("Error: ", error);
     return {
       message: JSON.stringify([
-        { message: "Catch Error: " + error.message },
+        { message: "Error: " + error.message },
         { result: "error" },
       ])
     };
@@ -338,7 +338,7 @@ export async function addDistributionAction(
     if ( riceRecord && validatedFields.quantityKg > riceRecord.stockKg) {
       return {
         message: JSON.stringify([
-          { message: "Cannot distribute rice more than current stock" },
+          { message: "Insufficient rice stock (" + riceRecord.name + ") : Available: " + riceRecord.stockKg + " kg" },
           { result: "error" },
         ]),
       };
@@ -410,6 +410,15 @@ export async function editDistributionAction(id: string, formData: FormData): Pr
       const newQty = validatedFields.quantityKg;
       const diff = newQty - oldQty;
 
+      // Check rice stock before update
+      const rice = await tx.rice.findUnique({ where: { id: validatedFields.riceId } });
+      if (!rice) throw new Error("Rice variety not found");
+
+      const newStock = rice.stockKg - diff;
+      if (newStock < 0) {
+        throw new Error(`Insufficient rice stock. Available: ${rice.stockKg} kg`);
+      }
+
       // Update distribution
       const updated = await tx.employeeDistribution.update({
         where: { id },
@@ -457,6 +466,15 @@ export async function deleteDistributionItemAction(id: string): Promise<{ messag
         where: { id },
       });
       if (!existing) throw new Error("Distribution not found");
+
+      const rice = await tx.rice.findUnique({ where: { id: existing.riceId } });
+      if (!rice) throw new Error("Rice variety not found");
+
+      // For safety only in case of data corruption
+      const newStock = rice.stockKg + existing.quantityKg;
+      if (newStock < 0) {
+        throw new Error(`Invalid rice stock (${rice.name}) deletion. Current stock: ${rice.stockKg} kg`);
+      }
 
       // Delete distribution
       await tx.employeeDistribution.delete({ where: { id } });
