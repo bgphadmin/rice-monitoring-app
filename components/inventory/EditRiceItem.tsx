@@ -17,6 +17,7 @@ import { InventoryRow } from "./InventoryGrid";
 import toast from "react-hot-toast";
 import { useState } from "react";
 import LoadingDeleteButton from "../utils/LoadingDeleteButton";
+import { ConfirmDeleteDialog } from "../utils/ConfirmDeleteDialog";
 
 export function EditRiceItem({
     item,
@@ -130,14 +131,20 @@ export function EditRiceItem({
                         >
                             Save
                         </LoadingButton>
-                        <LoadingDeleteButton
-                            onClick={handleDelete}
-                            loading={deleting}
-                            type="button"
-                            className="flex-1 rounded-md bg-red-600 text-white hover:bg-red-700 transition-all duration-200 hover:-translate-y-1 hover:shadow-xl active:translate-y-0"
-                        >
-                            Delete
-                        </LoadingDeleteButton>
+                        <ConfirmDeleteDialog
+                            itemName={item.name}
+                            deleting={deleting}
+                            onDelete={handleDelete}
+                            trigger={
+                                <LoadingDeleteButton
+                                    loading={deleting}
+                                    type="button"
+                                    className="flex-1 h-11 rounded-md bg-red-600 text-white hover:bg-red-700 px-8"
+                                >
+                                    Delete
+                                </LoadingDeleteButton>
+                            }
+                        />
                     </AlertDialogFooter>
                 </form>
             </AlertDialogContent>
