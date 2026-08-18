@@ -49,7 +49,13 @@ export function EditDistributionItem({
     onOpenChange,
     onEditSuccess,
     onDeleteSuccess,
-    riceOptions }: { item: { id: string; firstName: string; lastName: string; employeeId: string; rice: { id: string; name: string; }; quantityKg: number; dateGiven: string; createdBy: { firstName: string; lastName: string; }; comment: string | null; }, open: boolean, onOpenChange: (open: boolean) => void, showTrigger?: boolean, onEditSuccess?: (updated: DistributionRow) => void, onDeleteSuccess?: (deleteId: string) => void, riceOptions: RiceOption[] }) {
+    riceOptions }: {
+        item: { id: string; firstName: string; lastName: string; employeeId: string; rice: { id: string; name: string; }; quantityKg: number; dateGiven: string; createdBy: { firstName: string; lastName: string; }; comment: string | null; },
+        open: boolean,
+        onOpenChange: (open: boolean) => void, showTrigger?: boolean,
+        onEditSuccess?: (updated: DistributionRow) => void,
+        onDeleteSuccess?: (deleteId: string) => void, riceOptions: RiceOption[]
+    }) {
 
     const [deleting, setDeleting] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -57,6 +63,9 @@ export function EditDistributionItem({
     const handleSubmit = async (formData: FormData) => {
         setSaving(true);
         const result = await editDistributionAction(item.id, formData);
+
+        console.log('result: ', result);
+
         const parsedMessage = JSON.parse(result.message);
 
         if (parsedMessage.length == 3 && parsedMessage[1].result == 'success') {
@@ -159,7 +168,6 @@ export function EditDistributionItem({
                     <input
                         type="date"
                         name="dateGiven"
-                        // defaultValue={item.dateGiven}
                         defaultValue={
                             item.dateGiven
                                 ? new Date(item.dateGiven).toISOString().split("T")[0]

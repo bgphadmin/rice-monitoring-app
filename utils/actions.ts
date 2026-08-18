@@ -398,22 +398,42 @@ export async function editDistributionAction(id: string, formData: FormData): Pr
   try {
     const rawData = Object.fromEntries(formData);
     const validatedFields = distributionSchema.parse(rawData);
-    // Convert dateGiven string into a Date object
-    const dateGivenValue = validatedFields.dateGiven
-      ? new Date(validatedFields.dateGiven)
-      : undefined;
+        const result = await db.$transaction(async (tx) => {
+      // Get the existing distribution
+      const existing = await tx.employeeDistribution.findUnique({
+        where: { id },
+      });
+      if (!existing) throw new Error("Distribution not found");
 
-    const distribution = await db.employeeDistribution.update({
-      where: { id},
-      data: { ...validatedFields,
-              dateGiven: dateGivenValue, 
-              createdById: userId || "",
-              riceId: validatedFields.riceId 
-            },
-      include: {
-        createdBy: true,
-        rice: true
-      },
+      // Calculate stock adjustment
+      const oldQty = existing.quantityKg;
+      const newQty = validatedFields.quantityKg;
+      const diff = newQty - oldQty;
+
+      // Update distribution
+      const updated = await tx.employeeDistribution.update({
+        where: { id },
+        data: {
+          firstName: validatedFields.firstName,
+          lastName: validatedFields.lastName,
+          employeeId: validatedFields.employeeId,
+          quantityKg: newQty,
+          comment: validatedFields.comment,
+          dateGiven: new Date(validatedFields.dateGiven),
+          riceId: validatedFields.riceId,
+          createdById: userId || "",
+        },
+        include: { createdBy: true, rice: true },
+      });
+
+      // Adjust rice stock
+      await tx.rice.update({
+        where: { id: validatedFields.riceId },
+        data: {
+          stockKg: { decrement: diff }, // if diff positive, subtract more; if negative, add back
+        },
+      });
+      return updated;
     });
 
     revalidatePath("/distribution");
@@ -421,7 +441,7 @@ export async function editDistributionAction(id: string, formData: FormData): Pr
       message: JSON.stringify([
         { message: "Rice distribution updated successfully" },
         { result: "success" },
-        { distribution },
+        { distribution: result },
       ]),
     };
   } catch (err: unknown) {
@@ -432,14 +452,31 @@ export async function editDistributionAction(id: string, formData: FormData): Pr
 
 export async function deleteDistributionItemAction(id: string): Promise<{ message: string }> {
   try {
-    await db.employeeDistribution.delete({
-      where: { id },
+    const result = await db.$transaction(async (tx) => {
+      const existing = await tx.employeeDistribution.findUnique({
+        where: { id },
+      });
+      if (!existing) throw new Error("Distribution not found");
+
+      // Delete distribution
+      await tx.employeeDistribution.delete({ where: { id } });
+
+      // Restore rice stock
+      await tx.rice.update({
+        where: { id: existing.riceId },
+        data: {
+          stockKg: { increment: existing.quantityKg },
+        },
+      });
+
+      return existing;
     });
     revalidatePath("/inventory");
     return {
       message: JSON.stringify([
         { message: "Rice distribution deleted successfully" },
         { result: "success" },
+        { distribution: result },
       ])
     };
   } catch (err: unknown) {
