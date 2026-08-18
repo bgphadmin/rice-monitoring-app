@@ -52,6 +52,7 @@ const columns = [
         header: "Last Name",
     }),
     columnHelper.accessor("rice.name", {
+        id: "rice.name",
         header: "Rice Type",
     }),
     columnHelper.accessor("quantityKg", {
@@ -71,6 +72,7 @@ const columns = [
     columnHelper.accessor((row) => `${row.createdBy.firstName} ${row.createdBy.lastName}`, {
         id: "createdBy",
         header: "Entered By",
+        enableSorting: false,
     }),
 ]
 
