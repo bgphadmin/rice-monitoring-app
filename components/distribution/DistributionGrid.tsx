@@ -68,6 +68,7 @@ const columns = [
     columnHelper.accessor("comment", {
         header: "Comment",
         cell: (info) => info.getValue() ?? "-",
+        enableSorting: false,
     }),
     columnHelper.accessor((row) => `${row.createdBy.firstName} ${row.createdBy.lastName}`, {
         id: "createdBy",
