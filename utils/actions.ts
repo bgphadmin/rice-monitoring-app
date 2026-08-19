@@ -591,7 +591,9 @@ export async function getDashboardMetrics() {
   const now = new Date();
   const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
   const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
-
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+  
   // Rice stock
   const riceItems = await db.rice.findMany({
     select: { name: true, stockKg: true, reorderLevel: true },
@@ -609,10 +611,17 @@ export async function getDashboardMetrics() {
     },
   });
 
+    // Current year distribution
+  const yearTotal = await db.employeeDistribution.aggregate({
+    _sum: { quantityKg: true },
+    where: { dateGiven: { gte: startOfYear, lte: endOfYear } },
+  });
+
   return {
     riceItems,
     totalStock,
     monthlyTotal: distributionTotal._sum.quantityKg ?? 0,
+    yearlyTotal: yearTotal._sum.quantityKg ?? 0,
   };
 }
 

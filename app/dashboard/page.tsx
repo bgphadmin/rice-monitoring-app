@@ -14,15 +14,17 @@ export default function DashboardPage() {
   const [totalStock, setTotalStock] = useState<number>(0);
   const [monthlyTotal, setMonthlyTotal] = useState<number>(0);
   const [monthlyData, setMonthlyData] = useState<{ month: string; total: number; cumulative: number }[]>([]);
+  const [yearlyTotal, setYearlyTotal] = useState<number>(0);
 
   useEffect(() => {
     const fetchRiceData = async () => {
       // const { riceItems, totalStock } = await getRiceItemsWithStock();
       // const monthTotal = await getCurrentMonthDistributionTotal();
-      const { riceItems, totalStock, monthlyTotal } = await getDashboardMetrics();
+      const { riceItems, totalStock, monthlyTotal, yearlyTotal } = await getDashboardMetrics();
       setRiceData(riceItems);
       setTotalStock(totalStock);
       setMonthlyTotal(monthlyTotal);
+      setYearlyTotal(yearlyTotal);
     };
     fetchRiceData();
   }, []);
@@ -39,7 +41,7 @@ export default function DashboardPage() {
   return (
     <section className="space-y-8">
       <h2 className="text-2xl font-bold text-green-700">Dashboard Overview</h2>
-      <SummaryCards totalStock={totalStock} monthlyTotal={monthlyTotal} />
+      <SummaryCards totalStock={totalStock} monthlyTotal={monthlyTotal} yearlyTotal={yearlyTotal} />
       <InventoryChart data={riceData} />
       <MonthlyDistributionChart data={monthlyData} />
       <RicePieChart data={riceData} />

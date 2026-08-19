@@ -1,9 +1,11 @@
 export default function SummaryCards({
   totalStock,
   monthlyTotal,
+  yearlyTotal,
 }: {
   totalStock: number;
   monthlyTotal: number;
+  yearlyTotal: number;
 }) {
 
   // Get current month name
@@ -18,6 +20,10 @@ export default function SummaryCards({
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold text-gray-700">{monthName} {year} Distribution</h3>
         <p className="text-2xl font-bold text-blue-600">{monthlyTotal} kg</p>
+      </div>
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-gray-700">Total {year} Distribution</h3>
+        <p className="text-2xl font-bold text-purple-600">{yearlyTotal} kg</p>
       </div>
     </div>
   );
