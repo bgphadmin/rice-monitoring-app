@@ -3,7 +3,8 @@
 import InventoryChart from "@/components/dashboard/InventoryChart";
 import RicePieChart from "@/components/dashboard/RicePieChart";
 import SummaryCards from "@/components/dashboard/SummaryCards";
-import { getDashboardMetrics } from "@/utils/actions";
+import MonthlyDistributionChart from "@/components/distribution/MonthlyDistributionCharts";
+import { getDashboardMetrics, getMonthlyDistributionTotals } from "@/utils/actions";
 import { useEffect, useState } from "react";
 
 
@@ -12,6 +13,7 @@ export default function DashboardPage() {
   const [riceData, setRiceData] = useState<{ name: string; stockKg: number; reorderLevel: number }[]>([]);
   const [totalStock, setTotalStock] = useState<number>(0);
   const [monthlyTotal, setMonthlyTotal] = useState<number>(0);
+  const [monthlyData, setMonthlyData] = useState<{ month: string; total: number; cumulative: number }[]>([]);
 
   useEffect(() => {
     const fetchRiceData = async () => {
@@ -25,11 +27,21 @@ export default function DashboardPage() {
     fetchRiceData();
   }, []);
 
+  // Second useEffect → yearly chart data
+  useEffect(() => {
+    const fetchMonthlyData = async () => {
+      const data = await getMonthlyDistributionTotals();
+      setMonthlyData(data);
+    };
+    fetchMonthlyData();
+  }, []);
+
   return (
     <section className="space-y-8">
       <h2 className="text-2xl font-bold text-green-700">Dashboard Overview</h2>
       <SummaryCards totalStock={totalStock} monthlyTotal={monthlyTotal} />
       <InventoryChart data={riceData} />
+      <MonthlyDistributionChart data={monthlyData} />
       <RicePieChart data={riceData} />
     </section>
   );

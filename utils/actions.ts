@@ -548,6 +548,44 @@ export async function getDailyDistributionTotals() {
   }));
 }
 
+export async function getMonthlyDistributionTotals() {
+  const now = new Date();
+  const startOfYear = new Date(now.getFullYear(), 0, 1);
+  const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
+
+  const distributions = await db.employeeDistribution.findMany({
+    where: {
+      dateGiven: {
+        gte: startOfYear,
+        lte: endOfYear,
+      },
+    },
+    select: { dateGiven: true, quantityKg: true },
+  });
+
+  const monthlyTotals: number[] = Array(12).fill(0);
+  distributions.forEach((d) => {
+    const monthIndex = d.dateGiven.getMonth();
+    monthlyTotals[monthIndex] += d.quantityKg;
+  });
+
+  const monthNames = [
+    "January","February","March","April","May","June",
+    "July","August","September","October","November","December"
+  ];
+
+  // Build cumulative totals
+  let runningTotal = 0;
+  return monthNames.map((name, i) => {
+    runningTotal += monthlyTotals[i];
+    return {
+      month: name,
+      total: monthlyTotals[i],
+      cumulative: runningTotal,
+    };
+  });
+}
+
 
 export async function getDashboardMetrics() {
   const now = new Date();
