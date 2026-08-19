@@ -502,6 +502,84 @@ export async function deleteDistributionItemAction(id: string): Promise<{ messag
   }
 }
 
+export async function getCurrentMonthDistributionTotal() {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+  const result = await db.employeeDistribution.aggregate({
+    _sum: { quantityKg: true },
+    where: {
+      dateGiven: {
+        gte: startOfMonth,
+        lte: endOfMonth,
+      },
+    },
+  });
+
+  return result._sum.quantityKg ?? 0;
+}
+
+export async function getDailyDistributionTotals() {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+  const distributions = await db.employeeDistribution.findMany({
+    where: {
+      dateGiven: {
+        gte: startOfMonth,
+        lte: endOfMonth,
+      },
+    },
+    select: { dateGiven: true, quantityKg: true },
+  });
+
+  // Aggregate by day
+  const dailyTotals: Record<string, number> = {};
+  distributions.forEach((d) => {
+    const day = d.dateGiven.toISOString().split("T")[0]; // YYYY-MM-DD
+    dailyTotals[day] = (dailyTotals[day] || 0) + d.quantityKg;
+  });
+
+  return Object.entries(dailyTotals).map(([date, total]) => ({
+    date,
+    total,
+  }));
+}
+
+
+export async function getDashboardMetrics() {
+  const now = new Date();
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59);
+
+  // Rice stock
+  const riceItems = await db.rice.findMany({
+    select: { name: true, stockKg: true, reorderLevel: true },
+  });
+  const totalStock = riceItems.reduce((sum, r) => sum + r.stockKg, 0);
+
+  // Current month distribution total
+  const distributionTotal = await db.employeeDistribution.aggregate({
+    _sum: { quantityKg: true },
+    where: {
+      dateGiven: {
+        gte: startOfMonth,
+        lte: endOfMonth,
+      },
+    },
+  });
+
+  return {
+    riceItems,
+    totalStock,
+    monthlyTotal: distributionTotal._sum.quantityKg ?? 0,
+  };
+}
+
+
+
 /* ------------------ Stock Logs Actions ------------------ */
 
 

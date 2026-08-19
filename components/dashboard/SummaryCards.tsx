@@ -1,22 +1,24 @@
-export default function SummaryCards({totalStock}: {totalStock: number}) {
-  const stats = [
-    { label: "Total Stock", value: "8,250 kg" },
-    { label: "Low Stock", value: "3 Items" },
-    { label: "New Orders", value: "5 Orders" },
-    { label: "Monthly Sales", value: "1,200 kg" },
-  ];
+export default function SummaryCards({
+  totalStock,
+  monthlyTotal,
+}: {
+  totalStock: number;
+  monthlyTotal: number;
+}) {
 
+  // Get current month name
+  const monthName = new Date().toLocaleString("default", { month: "long" });
+  const year = new Date().getFullYear();
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-      {stats.map((stat) => (
-        <div
-          key={stat.label}
-          className="bg-white rounded-lg shadow p-4 text-center"
-        >
-          <p className="text-sm text-gray-500">{stat.label}</p>
-          <p className="text-xl font-bold text-green-700">{totalStock}</p>
-        </div>
-      ))}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-gray-700">Total Stock</h3>
+        <p className="text-2xl font-bold text-green-600">{totalStock} kg</p>
+      </div>
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-lg font-semibold text-gray-700">{monthName} {year} Distribution</h3>
+        <p className="text-2xl font-bold text-blue-600">{monthlyTotal} kg</p>
+      </div>
     </div>
   );
 }
