@@ -122,13 +122,13 @@ export default function InventoryGrid({
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id} className="whitespace-nowrap bg-blue-300">
+                                    <TableHead key={header.id} className="whitespace-nowrap bg-blue-500">
                                         {header.isPlaceholder ? null : (
                                             <button
                                                 type="button"
                                                 onClick={header.column.getToggleSortingHandler()}
                                                 className={cn(
-                                                    "flex items-center gap-2 text-left text-sm font-semibold text-slate-900",
+                                                    "flex items-center gap-2 text-left text-sm font-semibold text-foreground",
                                                     header.column.getCanSort() ? "cursor-pointer" : "cursor-default"
                                                 )}
                                             >
@@ -154,12 +154,12 @@ export default function InventoryGrid({
                                     key={row.id}
                                     onClick={onRowClick ? () => onRowClick(row.original) : undefined}
                                     className={cn(
-                                        rowIndex % 2 === 0 ? "bg-blue-100" : undefined,
-                                        onRowClick ? "cursor-pointer hover:bg-blue-200" : undefined
+                                        rowIndex % 2 === 0 ? "bg-bgBlue" : undefined,
+                                        onRowClick ? "cursor-pointer hover:bg-blue-500" : undefined
                                     )}
                                 >
                                     {row.getAllCells().map((cell) => (
-                                        <TableCell key={cell.id} className="align-top py-3 px-3 text-sm text-slate-700">
+                                        <TableCell key={cell.id} className="align-top py-3 px-3 text-sm text-foreground">
                                             {cell.column.id === "quantityKg" ? (
                                                 <span className="font-medium">{String(cell.getValue())}</span>
                                             ) : (

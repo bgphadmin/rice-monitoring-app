@@ -127,7 +127,7 @@ export default function DistributionGrid({
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id} className="whitespace-nowrap bg-green-300">
+                                    <TableHead key={header.id} className="whitespace-nowrap bg-green-500">
                                         {header.isPlaceholder ? null : (
                                             <button
                                                 type="button"
@@ -159,12 +159,12 @@ export default function DistributionGrid({
                                     key={row.id}
                                     onClick={onRowClick ? () => onRowClick(row.original) : undefined}
                                     className={cn(
-                                        rowIndex % 2 === 0 ? "bg-green-100" : undefined,
-                                        onRowClick ? "cursor-pointer hover:bg-green-200" : undefined
+                                        rowIndex % 2 === 0 ? "bg-bgGreen" : undefined,
+                                        onRowClick ? "cursor-pointer hover:bg-green-500" : undefined
                                     )}
                                 >
                                     {row.getAllCells().map((cell) => (
-                                        <TableCell key={cell.id} className="align-top py-3 px-3 text-sm text-slate-700">
+                                        <TableCell key={cell.id} className="align-top py-3 px-3 text-sm text-foreground">
                                             {cell.column.id === "quantityKg" ? (
                                                 <span className="font-medium">{String(cell.getValue())}</span>
                                             ) : (

@@ -2,16 +2,11 @@
 
 import {
     AlertDialog,
-    AlertDialogTrigger,
     AlertDialogContent,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogCancel,
 } from "@/components/ui/alert-dialog"; // shadcn/ui import
 import { deleteDistributionItemAction, editDistributionAction, getRiceItem } from "@/utils/actions";
-import { Button } from "../ui/button";
 import LoadingButton from "../utils/LoadingButton";
 import toast from "react-hot-toast";
 import { useState } from "react";
@@ -110,32 +105,23 @@ export function EditDistributionItem({
 
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
-            <AlertDialogTrigger
-                render={<Button className="bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 rounded-md">Edit</Button>}
-            />
-            <AlertDialogContent className="bg-white border border-gray-200 rounded-lg p-6">
-                <AlertDialogHeader>
-                    <AlertDialogTitle className="text-lg font-semibold">Edit Rice Item</AlertDialogTitle>
-                    <AlertDialogDescription className="text-sm text-gray-500">
-                        Update the details below and save changes.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
+            <AlertDialogContent className="bg-background border border-gray-200 rounded-lg p-6">
                 <form action={handleSubmit} className="space-y-4">
-                    <label className="block text-sm font-medium text-gray-700">First Name</label>
+                    <label className="block text-sm font-medium text-foreground">First Name</label>
                     <input
                         type="text"
                         name="firstName"
                         defaultValue={item.firstName}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
-                    <label className="block text-sm font-medium text-gray-700">Last Name</label>
+                    <label className="block text-sm font-medium text-foreground">Last Name</label>
                     <input
                         type="text"
                         name="lastName"
                         defaultValue={item.lastName}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
-                    <label className="block text-sm font-medium text-gray-700">Employee ID</label>
+                    <label className="block text-sm font-medium text-foreground">Employee ID</label>
                     <input
                         type="text"
                         name="employeeId"
@@ -143,7 +129,7 @@ export function EditDistributionItem({
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
                     <input type="hidden" name="riceId" value={item.rice.id} />
-                    <label className="block text-sm font-medium text-gray-700"> Rice Variety</label>
+                    <label className="block text-sm font-medium text-foreground"> Rice Variety</label>
                     <select
                         // name="riceId"
                         defaultValue={item.rice.id}
@@ -160,14 +146,14 @@ export function EditDistributionItem({
                             </option>
                         ))}
                     </select>
-                    <label className="block text-sm font-medium text-gray-700">Quantity (kg)</label>
+                    <label className="block text-sm font-medium text-foreground">Quantity (kg)</label>
                     <input
                         type="number"
                         name="quantityKg"
                         defaultValue={item.quantityKg}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
-                    <label className="block text-sm font-medium text-gray-700">Date Given</label>
+                    <label className="block text-sm font-medium text-foreground">Date Given</label>
                     <input
                         type="date"
                         name="dateGiven"
@@ -178,7 +164,7 @@ export function EditDistributionItem({
                         }
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
-                    <label className="block text-sm font-medium text-gray-700">Comment</label>
+                    <label className="block text-sm font-medium text-foreground">Comment</label>
                     <input
                         type="text"
                         name="comment"

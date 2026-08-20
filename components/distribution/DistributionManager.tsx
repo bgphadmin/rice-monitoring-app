@@ -117,9 +117,9 @@ export default function DistributionManager({ initialRows, riceOptions, total }:
                     <h2 className="text-2xl font-bold text-green-700">Employee Rice Distribution</h2>
                 </div>
                 <AlertDialog>
-                    <AlertDialogTrigger render={<DistributeRiceButton className="w-full sm:w-auto bg-green-300 py-7 text-lg rounded-md shadow-xl" />}>
+                    <AlertDialogTrigger render={<DistributeRiceButton className="w-full sm:w-auto bg-bgGreen py-7 text-lg rounded-md shadow-xl" />}>
                     </AlertDialogTrigger>
-                    <AlertDialogContent className="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg">
+                    <AlertDialogContent className="bg-background border border-gray-200 rounded-2xl p-6 shadow-lg">
                         <AlertDialogHeader>
                             <AlertDialogTitle className="text-lg font-semibold">Add Rice Distribution</AlertDialogTitle>
                         </AlertDialogHeader>
@@ -128,19 +128,19 @@ export default function DistributionManager({ initialRows, riceOptions, total }:
                                 <>
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-700">First Name</label>
+                                            <label className="text-sm font-medium text-foreground">First Name</label>
                                             <Input name="firstName" value={formValues.firstName} onChange={handleFormChange} required />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-700">Last Name</label>
+                                            <label className="text-sm font-medium text-foreground">Last Name</label>
                                             <Input name="lastName" value={formValues.lastName} onChange={handleFormChange} required />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-700">Employee ID</label>
+                                            <label className="text-sm font-medium text-foreground">Employee ID</label>
                                             <Input name="employeeId" value={formValues.employeeId} onChange={handleFormChange} required />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-700">Rice Variety</label>
+                                            <label className="text-sm font-medium text-foreground">Rice Variety</label>
                                             <select
                                                 name="riceId"
                                                 value={formValues.riceId}
@@ -157,7 +157,7 @@ export default function DistributionManager({ initialRows, riceOptions, total }:
                                             </select>
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-700">Quantity (kg)</label>
+                                            <label className="text-sm font-medium text-foreground">Quantity (kg)</label>
                                             <Input
                                                 name="quantityKg"
                                                 type="number"
@@ -168,11 +168,11 @@ export default function DistributionManager({ initialRows, riceOptions, total }:
                                             />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-700">Date Given</label>
+                                            <label className="text-sm font-medium text-foreground">Date Given</label>
                                             <Input name="dateGiven" type="date" value={formValues.dateGiven} onChange={handleFormChange} required />
                                         </div>
                                         <div className="space-y-2 sm:col-span-2">
-                                            <label className="text-sm font-medium text-slate-700">Comment</label>
+                                            <label className="text-sm font-medium text-foreground">Comment</label>
                                             <Textarea name="comment" value={formValues.comment} onChange={handleFormChange} rows={3} />
                                         </div>
                                     </div>
@@ -198,7 +198,7 @@ export default function DistributionManager({ initialRows, riceOptions, total }:
                     <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
                     <label>To</label>
                     <Input type="date" value={endDate} onChange={e => setEndDate(e.target.value)} />
-                    <button onClick={() => { setStartDate(""); setEndDate("") }} className="px-2 py-1 bg-slate-200 rounded text-sm">Clear</button>
+                    <button onClick={() => { setStartDate(""); setEndDate("") }} className="px-2 py-1 bg-background border border-gray-200 shadow-lg rounded text-sm">Clear</button>
                 </div>
             </div>
 

@@ -34,7 +34,7 @@ export default function UserList({ users }: { users: User[] }) {
 
             <Table className="border-b-2">
                 <TableHeader>
-                    <TableRow className="bg-blue-300">
+                    <TableRow className="bg-blue-600">
                         <TableHead>First Name</TableHead>
                         <TableHead>Last Name</TableHead>
                         <TableHead>Email</TableHead>
@@ -47,7 +47,7 @@ export default function UserList({ users }: { users: User[] }) {
                     {filteredUsers.map((user, index) => (
                         <TableRow
                             key={user.id}
-                            className={index % 2 === 0 ? "bg-blue-100" : undefined}
+                            className={index % 2 === 0 ? "bg-bgBlue" : undefined}
                         >
                             <TableCell>{user.firstName}</TableCell>
                             <TableCell>{user.lastName}</TableCell>

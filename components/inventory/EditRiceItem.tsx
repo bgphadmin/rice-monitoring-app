@@ -2,16 +2,11 @@
 
 import {
     AlertDialog,
-    AlertDialogTrigger,
     AlertDialogContent,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogDescription,
     AlertDialogFooter,
     AlertDialogCancel,
 } from "@/components/ui/alert-dialog"; // shadcn/ui import
 import { deleteRiceItemAction, editRiceItemAction } from "@/utils/actions";
-import { Button } from "../ui/button";
 import LoadingButton from "../utils/LoadingButton";
 import { InventoryRow } from "./InventoryGrid";
 import toast from "react-hot-toast";
@@ -68,34 +63,27 @@ export function EditRiceItem({
     };
     return (
         <AlertDialog open={open} onOpenChange={onOpenChange}>
-            <AlertDialogTrigger
-                render={<Button className="bg-blue-600 text-white hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 rounded-md">Edit</Button>}
-            />
-            <AlertDialogContent className="bg-white border border-gray-200 rounded-lg p-6">
-                <AlertDialogHeader>
-                    <AlertDialogTitle className="text-lg font-semibold">Edit Rice Item</AlertDialogTitle>
-                    <AlertDialogDescription className="text-sm text-gray-500">
-                        Update the details below and save changes.
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
+            <AlertDialogContent className="bg-background border border-gray-200 rounded-lg p-6">
                 <form action={handleSubmit} className="space-y-4">
-                    <label className="block text-sm font-medium text-gray-700">Rice Variety</label>
+                    <label className="block text-sm font-medium text-foreground">Rice Variety</label>
                     <input
                         type="text"
                         name="name"
+                        readOnly
                         defaultValue={item.name}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
-                    <label className="block text-sm font-medium text-gray-700">Stock (kg)</label>
+                    <label className="block text-sm font-medium text-foreground">Stock (kg)</label>
                     <input
                         type="number"
+                        readOnly
                         step="0.5"
                         min="0"
                         name="stockKg"
                         defaultValue={item.stockKg}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
-                    <label className="block text-sm font-medium text-gray-700">Reorder Level (kg)</label>
+                    <label className="block text-sm font-medium text-foreground">Reorder Level (kg)</label>
                     <input
                         type="number"
                         step="0.5"
@@ -104,14 +92,13 @@ export function EditRiceItem({
                         defaultValue={item.reorderLevel}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
-                    <label className="block text-sm font-medium text-gray-700">Comments</label>
+                    <label className="block text-sm font-medium text-foreground">Comments</label>
                     <input
                         type="text"
                         name="comment"
                         defaultValue={item.comment || ""}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
-                    {/* <label className="block text-sm font-medium text-gray-700">Added By</label> */}
                     <input
                         hidden
                         type="text"

@@ -74,7 +74,7 @@ function FormContainer({
         .join('\n');
       toast.error(errorMessages || 'An error occurred');
     }
-  }, [state.message]);
+  }, [state.message, state]);
   return <form action={formAction} >{children({ loading: pending })}</form>;
 }
 

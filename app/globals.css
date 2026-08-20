@@ -1,3 +1,29 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #1f2937;
+  --card: #f9fafb;
+  --muted: #6b7280;
+  --accent: #2563eb;
+
+  --bg-green: #86efac;
+  --bg-blue: #93c5fd;
+  --bg-red: #fca5a5;
+  --bg-slate: #cbd5e1;
+}
+
+.dark {
+  --background: #1f2937;
+  --foreground: #f3f4f6;
+  --card: #374151;
+  --muted: #9ca3af;
+  --accent: #7c3aed;
+
+  --bg-green: #1f2937;
+  --bg-blue: #1f2937;
+  --bg-red: #1f2937;
+  --bg-slate: #1f2937;
+}

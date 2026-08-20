@@ -98,9 +98,9 @@ export default function StockLogManager({ initialRows, riceOptions = [], total }
                     <h2 className="text-2xl font-bold text-slate-700">Stock Logs</h2>
                 </div>
                 <AlertDialog>
-                    <AlertDialogTrigger render={<AddStockLogButton className="w-full sm:w-auto bg-slate-300 py-7 text-lg rounded-md shadow-xl" />}>
+                    <AlertDialogTrigger render={<AddStockLogButton className="w-full sm:w-auto bg-bgSlate py-7 text-lg rounded-md shadow-xl" />}>
                     </AlertDialogTrigger>
-                    <AlertDialogContent className="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg">
+                    <AlertDialogContent className="bg-background border border-gray-200 rounded-2xl p-6 shadow-lg">
                         <AlertDialogHeader>
                             <AlertDialogTitle className="text-lg font-semibold">Add Rice Stock</AlertDialogTitle>
                         </AlertDialogHeader>
@@ -109,7 +109,7 @@ export default function StockLogManager({ initialRows, riceOptions = [], total }
                                 <>
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-700">Rice Variety</label>
+                                            <label className="text-sm font-medium text-foreground">Rice Variety</label>
                                             <select
                                                 name="riceId"
                                                 value={formValues.riceId}
@@ -126,11 +126,11 @@ export default function StockLogManager({ initialRows, riceOptions = [], total }
                                             </select>
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-700">Quantity (kg)</label>
+                                            <label className="text-sm font-medium text-foreground">Quantity (kg)</label>
                                             <Input type="number" step="0.5" name="quantityKg" min="1" value={formValues.quantityKg} onChange={handleFormChange} required />
                                         </div>
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-slate-700">Action</label>
+                                            <label className="text-sm font-medium text-foreground">Add/Remove</label>
                                             <select
                                                 name="action"
                                                 value={formValues.action}
