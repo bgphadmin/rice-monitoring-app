@@ -19,7 +19,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import mlaTimeConvert from "@/utils/mlaTimeConvert"
 import { StockLog } from "@/utils/types"
@@ -32,6 +31,7 @@ interface StockLogGridProps {
     React.SetStateAction<{ pageIndex: number; pageSize: number }>
   >
   onRowClick?: (row: StockLog) => void
+  globalFilter: string // 👈 new prop
 }
 
 const columnHelper = createColumnHelper<StockLog>()
@@ -67,16 +67,14 @@ export default function StockLogGrid({
   pagination,
   onPaginationChange,
   onRowClick,
+  globalFilter,
 }: StockLogGridProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
-  const [globalFilter, setGlobalFilter] = React.useState("")
-
   const table = useReactTable({
     data: stockLog,
     columns,
     state: { sorting, globalFilter, pagination },
     onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
     onPaginationChange,
     pageCount: Math.ceil(total / pagination.pageSize), // 👈 server-side page count
     manualPagination: true, // 👈 tells TanStack we fetch data manually
@@ -88,15 +86,6 @@ export default function StockLogGrid({
 
   return (
     <div className="space-y-4">
-      {/* Filter */}
-      <Input
-        placeholder="Filter distributions..."
-        value={globalFilter}
-        onChange={(e) => setGlobalFilter(e.target.value)}
-        className="max-w-md"
-      />
-
-      {/* Table */}
       <div className="overflow-auto bg-background shadow-sm">
         <Table className="min-w-full">
           <TableHeader>

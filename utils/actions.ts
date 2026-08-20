@@ -10,7 +10,7 @@ import verifyUser from "./userValidation";
 import { ZodError } from "zod";
 import { stockLogSchema } from "./validation/stockLogSchema";
 import { SortingState } from "@tanstack/react-table";
-import { Prisma } from "@prisma/client";
+import { Prisma, Rice, User } from "@prisma/client";
 
 export const renderError = (error: unknown): { message: string } => {
   if (error instanceof ZodError) {
@@ -628,18 +628,67 @@ export async function getDashboardMetrics() {
 
 
 /* ------------------ Stock Logs Actions ------------------ */
+interface SafeStockLog {
+  id: string
+  riceId: string
+  quantityKg: number
+  action: "ADD" | "REMOVE" 
+  comment: string | null
+  createdAt: string
+  createdById: string
+  rice: Rice
+  createdBy: User
+}
+
+interface GetStockLogsResult {
+  safeRows: SafeStockLog[]
+  total: number
+}
 
 
 // app/actions/getStockLogs.ts
-export async function getStockLogs(pageIndex = 0, pageSize = 10) {
+export async function getStockLogs(
+  pageIndex = 0,
+  pageSize = 10,
+  startDate?: Date,
+  endDate?: Date
+  ): Promise<GetStockLogsResult> {
+  // Ensure endDate includes the entire day
+  let inclusiveEndDate: Date | undefined = undefined
+  if (endDate) {
+    inclusiveEndDate = new Date(endDate)
+    inclusiveEndDate.setHours(23, 59, 59, 999) // 👈 include full day
+  }
+  
   const [rows, total] = await Promise.all([
     db.riceStockLog.findMany({
       skip: pageIndex * pageSize,
       take: pageSize,
       orderBy: { createdAt: "desc" },
       include: { rice: true, createdBy: true },
+      where: {
+        ...(startDate || inclusiveEndDate
+          ? {
+              createdAt: {
+                ...(startDate ? { gte: startDate } : {}),
+                ...(inclusiveEndDate ? { lte: inclusiveEndDate } : {}),
+              },
+            }
+          : {}),
+      },
     }),
-    db.riceStockLog.count(),
+    db.riceStockLog.count({
+      where: {
+        ...(startDate || inclusiveEndDate
+          ? {
+              createdAt: {
+                ...(startDate ? { gte: startDate } : {}),
+                ...(inclusiveEndDate ? { lte: inclusiveEndDate } : {}),
+              },
+            }
+          : {}),
+      },
+    }),
   ])
 
    // 🔑 Convert Decimal → number here
@@ -647,7 +696,7 @@ export async function getStockLogs(pageIndex = 0, pageSize = 10) {
     id: record.id,
     riceId: record.riceId,
     quantityKg: record.quantityKg.toNumber(), // ✅ plain number
-    action: record.action,
+    action: record.action as "ADD" | "REMOVE", // 👈 cast to union type
     comment: record.comment ?? null,
     createdAt: record.createdAt.toISOString(),
     createdById: record.createdById,

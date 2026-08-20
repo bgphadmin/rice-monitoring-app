@@ -40,27 +40,38 @@ const defaultFormState = {
 export default function StockLogManager({ initialRows, riceOptions = [], total }: StockLogManagerProps) {
     const [rows, setRows] = React.useState<StockLog[]>(initialRows)
     const [formValues, setFormValues] = React.useState(defaultFormState)
-    // const [selectedRow, setSelectedRow] = React.useState<StockLog | null>(null);
     const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 })
+
+    // NEW: date range state
+    const [startDate, setStartDate] = React.useState<string>("")
+    const [endDate, setEndDate] = React.useState<string>("")
+    const [globalFilter, setGlobalFilter] = React.useState("")
 
     React.useEffect(() => {
         async function fetchPage() {
-            const { safeRows } = await getStockLogs(pagination.pageIndex, pagination.pageSize)
-            setRows(safeRows.map((record) => ({
-                id: record.id,
-                rice: { name: record.rice.name, id: record.rice.id },
-                quantityKg: record.quantityKg,
-                action: record.action,
-                comment: record.comment || "",
-                createdAt: record.createdAt,
-                createdBy: {
-                    firstName: record.createdBy.firstName,
-                    lastName: record.createdBy.lastName,
-                },
-            })))
+            const { safeRows } = await getStockLogs(
+                pagination.pageIndex,
+                pagination.pageSize,
+                startDate ? new Date(startDate) : undefined,
+                endDate ? new Date(endDate) : undefined
+            )
+            setRows(
+                safeRows.map((record) => ({
+                    id: record.id,
+                    rice: { name: record.rice.name, id: record.rice.id },
+                    quantityKg: record.quantityKg,
+                    action: record.action,
+                    comment: record.comment || "",
+                    createdAt: record.createdAt,
+                    createdBy: {
+                        firstName: record.createdBy.firstName,
+                        lastName: record.createdBy.lastName,
+                    },
+                }))
+            )
         }
         fetchPage()
-    }, [pagination])
+    }, [pagination, startDate, endDate])
 
     const handleFormChange = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -77,19 +88,6 @@ export default function StockLogManager({ initialRows, riceOptions = [], total }
             setFormValues(defaultFormState)
         }
     }
-
-    // const handleEditSuccess = (updated: StockLog) => {
-    //     setRows((prev) =>
-    //         prev.map((row) => row.id === updated.id ? updated : row)
-    //     );
-    //     setSelectedRow(null);
-    // };
-
-    // const handleDeleteSuccess = (deletedId: string) => {
-    //     setRows((prev) => prev.filter((row) => row.id !== deletedId)); // ✅ remove row
-    //     setSelectedRow(null);
-    //     // router.refresh();
-    // };
 
     return (
         <div className="space-y-6">
@@ -165,23 +163,50 @@ export default function StockLogManager({ initialRows, riceOptions = [], total }
                     </AlertDialogContent>
                 </AlertDialog>
             </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
+                {/* Global text filter */}
+                <Input
+                    placeholder="Filter stock logs..."
+                    value={globalFilter}
+                    onChange={(e) => setGlobalFilter(e.target.value)}
+                    className="max-w-md"
+                />
+                <div className="flex items-center gap-2">
+                    {/* Date range filter */}
+                    <label>From</label>
+                    <Input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="w-full sm:w-40"
+                    />
+                    <label>To</label>
+                    <Input
+                        type="date"
+                        value={endDate}
+                        onChange={(e) => setEndDate(e.target.value)}
+                        className="w-full sm:w-40"
+                    />
+                    {/* Clear button */}
+                    <button
+                        onClick={() => {
+                            setStartDate("")
+                            setEndDate("")
+                        }}
+                        className="px-3 py-1 rounded bg-background shadow-lg text-sm hover:bg-slate-300"
+                    >
+                        Clear
+                    </button>
+                </div>
+            </div>
             <StockLogGrid
                 stockLog={rows}
                 total={total}
                 pagination={pagination}
                 onPaginationChange={setPagination}
-            // onRowClick={(row) => setSelectedRow(row)} // row click opens dialog 
+                globalFilter={globalFilter} // 👈 new prop
             />
-
-            {/* {selectedRow && (
-                <EditStockLog
-                    item={ { item: selectedRow } }
-                    open={true}
-                    onOpenChange={(open) => !open && setSelectedRow(null)}
-                    onEditSuccess={handleEditSuccess}
-                    onDeleteSuccess={handleDeleteSuccess}
-                />
-            )} */}
         </div>
     )
 }

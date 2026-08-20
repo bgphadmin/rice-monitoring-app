@@ -4,7 +4,6 @@ import InventoryChart from "@/components/dashboard/InventoryChart";
 import RicePieChart from "@/components/dashboard/RicePieChart";
 import SummaryCards from "@/components/dashboard/SummaryCards";
 import MonthlyDistributionChart from "@/components/distribution/MonthlyDistributionCharts";
-import { ThemeToggle } from "@/components/utils/ThemeToggle";
 import { getDashboardMetrics, getMonthlyDistributionTotals } from "@/utils/actions";
 import { useEffect, useState } from "react";
 
@@ -42,7 +41,6 @@ export default function DashboardPage() {
   return (
     <section className="space-y-8">
       <h2 className="text-2xl font-bold text-green-700">Dashboard Overview</h2>
-      <ThemeToggle />
       <SummaryCards totalStock={totalStock} monthlyTotal={monthlyTotal} yearlyTotal={yearlyTotal} />
       <InventoryChart data={riceData} />
       <MonthlyDistributionChart data={monthlyData} />
