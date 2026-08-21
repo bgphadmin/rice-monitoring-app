@@ -44,6 +44,13 @@ const columns = [
   columnHelper.accessor("quantityKg", {
     header: "Quantity (kg)",
   }),
+  columnHelper.accessor("price", {
+    header: "Price",
+  }),
+  columnHelper.accessor((row) => row.supplier.name, {
+    id: "supplier",
+    header: "Supplier",
+  }),
   columnHelper.accessor("action", {
     header: "Add/Remove",
   }),

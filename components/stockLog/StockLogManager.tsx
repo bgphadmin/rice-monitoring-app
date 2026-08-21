@@ -16,8 +16,8 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { addStockLogAction, getStockLogs } from "@/utils/actions"
 import StockLogGrid from "./StockLogGrid"
-import { StockLog } from "@/utils/types"
 import AddStockLogButton from "./AddStockLogButton"
+import { StockLog } from "@/utils/types"
 
 interface RiceOption {
     name: string
@@ -27,18 +27,20 @@ interface RiceOption {
 interface StockLogManagerProps {
     initialRows: StockLog[]
     riceOptions: RiceOption[]
+    supplierOptions: { name: string; id: string }[]
     total: number
 }
 
 const defaultFormState = {
     riceId: "",
     quantityKg: 0,
+    supplierId: "",
     price: 0,
     action: "ADD",
     comment: "",
 }
 
-export default function StockLogManager({ initialRows, riceOptions = [], total }: StockLogManagerProps) {
+export default function StockLogManager({ initialRows, riceOptions = [], total, supplierOptions = [] }: StockLogManagerProps) {
     const [rows, setRows] = React.useState<StockLog[]>(initialRows)
     const [formValues, setFormValues] = React.useState(defaultFormState)
     const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 })
@@ -59,11 +61,16 @@ export default function StockLogManager({ initialRows, riceOptions = [], total }
             setRows(
                 safeRows.map((record) => ({
                     id: record.id,
+                    riceId: record.riceId,
                     rice: { name: record.rice.name, id: record.rice.id },
+                    price: record.price,
+                    supplierId: record.supplierId as string,
+                    supplier: { name: record.supplier.name, id: record.supplier.id },
                     quantityKg: record.quantityKg,
                     action: record.action,
-                    comment: record.comment || "",
+                    comment: record.comment || null || undefined,
                     createdAt: record.createdAt,
+                    createdById: record.createdById,
                     createdBy: {
                         firstName: record.createdBy.firstName,
                         lastName: record.createdBy.lastName,
@@ -128,9 +135,26 @@ export default function StockLogManager({ initialRows, riceOptions = [], total }
                                             <label className="text-sm font-medium text-foreground">Quantity (kg)</label>
                                             <Input type="number" step="0.5" name="quantityKg" min="1" value={formValues.quantityKg} onChange={handleFormChange} required />
                                         </div>
+                                        <div className="space-y-2">
+                                            <label className="text-sm font-medium text-foreground">Supplier</label>
+                                            <select
+                                                name="supplierId"
+                                                value={formValues.supplierId}
+                                                onChange={handleFormChange}
+                                                required
+                                                className="flex h-11 w-full rounded-xl border border-input bg-input/30 px-3 py-2 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                                            >
+                                                <option value="">Select a supplier</option>
+                                                {supplierOptions.map((supplier) => (
+                                                    <option key={supplier.id} value={supplier.id}>
+                                                        {supplier.name}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
                                         <div className="space-y-2 sm:col-span-2">
                                             <label className="text-sm font-medium text-slate-700">Price (Kg)</label><label className="text-sm font-medium text-slate-700"></label>
-                                            <Input type="number" step="0.5" name="priceKg" min="1" value={formValues.price} onChange={handleFormChange} required />
+                                            <Input type="number" step="0.5" name="price" min="1" value={formValues.price} onChange={handleFormChange} required />
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-foreground">Add/Remove</label>

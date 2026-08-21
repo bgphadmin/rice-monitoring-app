@@ -2,7 +2,7 @@ import dynamic from "next/dynamic"
 import SkeletonTable from "@/components/utils/SkeletonTable"
 import verifyUser from "@/utils/userValidation"
 import { redirect } from "next/navigation"
-import { getRiceItems, getStockLogs } from "@/utils/actions"
+import { getRiceItems, getStockLogs, getSupplierItems } from "@/utils/actions"
 import { StockLog } from "@/utils/types"
 
 // ✅ Dynamically import StockLogManager with client-only rendering
@@ -23,13 +23,22 @@ const StockLogPage = async () => {
   // ✅ Fetch initial data
   const { safeRows: stockLogs, total } = await getStockLogs(0, 10) // first page only
   const riceItems = await getRiceItems()
+  const suppliers = await getSupplierItems()
 
   // ✅ Map rows into StockLog type
   const mappedRows: StockLog[] = stockLogs.map((record) => ({
     id: record.id,
+    riceId: record.riceId,
+    supplierId: record.supplierId as string,
+    createdById: record.createdById,
     rice: {
       name: record.rice.name,
       id: record.rice.id,
+    },
+    price: record.price,
+    supplier: {
+      name: record.supplier.name,
+      id: record.supplier.id,
     },
     quantityKg: record.quantityKg,
     action: record.action,
@@ -47,6 +56,7 @@ const StockLogPage = async () => {
         initialRows={mappedRows}
         total={total} // 👈 pass total count for pagination
         riceOptions={riceItems.map((rice) => ({ id: rice.id, name: rice.name }))}
+        supplierOptions={suppliers.map((supplier) => ({ id: supplier.id, name: supplier.name }))}
       />
     </section>
   )

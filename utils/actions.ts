@@ -10,8 +10,9 @@ import verifyUser from "./userValidation";
 import { ZodError } from "zod";
 import { stockLogSchema } from "./validation/stockLogSchema";
 import { SortingState } from "@tanstack/react-table";
-import { Prisma,  RiceStock,  User } from "@prisma/client";
+import { Prisma,  RiceStock,  RiceStockLog,  Supplier,  User } from "@prisma/client";
 import { supplierSchema } from "./validation/supplierSchema";
+import { StockLog } from "./types";
 
 export const renderError = (error: unknown): { message: string } => {
   if (error instanceof ZodError) {
@@ -629,20 +630,9 @@ export async function getDashboardMetrics() {
 
 
 /* ------------------ Stock Logs Actions ------------------ */
-interface SafeStockLog {
-  id: string
-  riceId: string
-  quantityKg: number
-  action: "ADD" | "REMOVE" 
-  comment: string | null
-  createdAt: string
-  createdById: string
-  rice: RiceStock
-  createdBy: User
-}
 
 interface GetStockLogsResult {
-  safeRows: SafeStockLog[]
+  safeRows: StockLog[]
   total: number
 }
 
@@ -654,7 +644,12 @@ export async function getStockLogs(
   startDate?: Date,
   endDate?: Date
   ): Promise<GetStockLogsResult> {
-  // Ensure endDate includes the entire day
+  // Ensure endDate and startDate includes the entire day
+  let inclusiveStartDate: Date | undefined = undefined
+  if (startDate) {
+    inclusiveStartDate = new Date(startDate)
+    inclusiveStartDate.setHours(0, 0, 0, 0)
+  }
   let inclusiveEndDate: Date | undefined = undefined
   if (endDate) {
     inclusiveEndDate = new Date(endDate)
@@ -666,12 +661,12 @@ export async function getStockLogs(
       skip: pageIndex * pageSize,
       take: pageSize,
       orderBy: { createdAt: "desc" },
-      include: { rice: true, createdBy: true },
+      include: { rice: true, createdBy: true, supplier: true },
       where: {
-        ...(startDate || inclusiveEndDate
+        ...(inclusiveStartDate || inclusiveEndDate
           ? {
               createdAt: {
-                ...(startDate ? { gte: startDate } : {}),
+                ...(inclusiveStartDate ? { gte: inclusiveStartDate } : {}),
                 ...(inclusiveEndDate ? { lte: inclusiveEndDate } : {}),
               },
             }
@@ -680,10 +675,10 @@ export async function getStockLogs(
     }),
     db.riceStockLog.count({
       where: {
-        ...(startDate || inclusiveEndDate
+        ...(inclusiveStartDate || inclusiveEndDate
           ? {
               createdAt: {
-                ...(startDate ? { gte: startDate } : {}),
+                ...(inclusiveStartDate ? { gte: inclusiveStartDate } : {}),
                 ...(inclusiveEndDate ? { lte: inclusiveEndDate } : {}),
               },
             }
@@ -692,16 +687,24 @@ export async function getStockLogs(
     }),
   ])
 
-   // 🔑 Convert Decimal → number here
   const safeRows = rows.map((record) => ({
     id: record.id,
-    riceId: record.riceId,
+    riceId: record.riceId || "",
+    rice: {
+      name: record.rice.name,
+      id: record.rice.id,
+    },
+    supplierId: record.supplierId as string || "",
+    supplier: {
+      name: record.supplier?.name || "",
+      id: record.supplier?.id || "",
+    },
     quantityKg: record.quantityKg,
+    price: record.price,
     action: record.action as "ADD" | "REMOVE", // 👈 cast to union type
     comment: record.comment ?? null,
     createdAt: record.createdAt.toISOString(),
-    createdById: record.createdById,
-    rice: record.rice,
+    createdById: record.createdById as string,
     createdBy: record.createdBy,
   }))
 
@@ -792,6 +795,14 @@ export async function addStockLogAction(
 
 
 /* ------------------ Suppliers Actions ------------------ */
+
+export async function getSupplierItems() {
+  return db.supplier.findMany({ 
+    orderBy: {
+      name: "asc",
+    },
+  });
+}
 
 export async function getSuppliersPerPage(pageIndex = 0, pageSize = 10) {
   const [rows, total] = await Promise.all([

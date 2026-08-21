@@ -22,10 +22,15 @@ export type DistributionRow = {
 
 export type StockLog = {
   id: string;
+  riceId: string;
+  supplierId: string;
   rice: { name: string; id: string };
+  supplier: { name: string; id: string };
+  price: number;
   quantityKg: number;
   action: "ADD" | "REMOVE";
-  comment?: string | null;
+  comment?: string | null | undefined;
   createdAt: string;
+  createdById: string;
   createdBy: { firstName: string; lastName: string };
 };
