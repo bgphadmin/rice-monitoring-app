@@ -10,7 +10,7 @@ import verifyUser from "./userValidation";
 import { ZodError } from "zod";
 import { stockLogSchema } from "./validation/stockLogSchema";
 import { SortingState } from "@tanstack/react-table";
-import { Prisma, Rice, User } from "@prisma/client";
+import { Prisma,  RiceStock,  User } from "@prisma/client";
 
 export const renderError = (error: unknown): { message: string } => {
   if (error instanceof ZodError) {
@@ -42,7 +42,7 @@ export const renderError = (error: unknown): { message: string } => {
 
 /* ------------------ Rice Actions ------------------ */
 export async function getRiceItems() {
-  return db.rice.findMany({ 
+  return db.riceStock.findMany({ 
     include: {
       addedBy: true,
     },
@@ -54,13 +54,13 @@ export async function getRiceItems() {
 
 export async function getRiceItemsPerPage(pageIndex = 0, pageSize = 10) {
   const [rows, total] = await Promise.all([
-    db.rice.findMany({
+    db.riceStock.findMany({
       skip: pageIndex * pageSize,
       take: pageSize,
       orderBy: { updatedAt: "desc" },
       include: { addedBy: true },
     }),
-    db.rice.count(),
+    db.riceStock.count(),
   ])
    // 🔑 Convert Decimal → number here
   const safeRows = rows.map((record) => ({
@@ -81,7 +81,7 @@ export async function getRiceItemsPerPage(pageIndex = 0, pageSize = 10) {
 
 // get rice items with stock and total stock
 export async function getRiceItemsWithStock() {
-  const riceItems = await db.rice.findMany({
+  const riceItems = await db.riceStock.findMany({
     select: { id: true, name: true, stockKg: true, reorderLevel: true },
     orderBy: { name: "asc" },
   });
@@ -96,7 +96,7 @@ export async function getRiceItemsWithStock() {
 
 // get rice options
 export async function getRiceOptions() {
-  return await db.rice.findMany({
+  return await db.riceStock.findMany({
     select: { id: true, name: true },
     orderBy: { name: "asc" },
   });
@@ -104,7 +104,7 @@ export async function getRiceOptions() {
 
 // get a rice item
 export async function getRiceItem(id: string){
-  return await db.rice.findUnique ({ 
+  return await db.riceStock.findUnique ({ 
       select: { name: true },
       where: { id } 
     });
@@ -118,7 +118,7 @@ export const addRiceItem = async (
   try {
     const rawData = Object.fromEntries(formData);
     const validatedFields = riceSchema.parse(rawData);
-    const inventory = await db.rice.create({
+    const inventory = await db.riceStock.create({
       data: {
         ...validatedFields,
         addedById: userId || "", 
@@ -156,7 +156,7 @@ export async function editRiceItemAction(id: string, formData: FormData): Promis
   try {
     const rawData = Object.fromEntries(formData);
     const validatedFields = riceSchema.parse(rawData);
-    const inventory = await db.rice.update({
+    const inventory = await db.riceStock.update({
       where: { id},
       data: { ...validatedFields, addedById: userId || "" },
       include: {
@@ -180,7 +180,7 @@ export async function editRiceItemAction(id: string, formData: FormData): Promis
 
 export async function deleteRiceItemAction(id: string): Promise<{ message: string }> {
   try {
-    await db.rice.delete({
+    await db.riceStock.delete({
       where: { id },
     });
     revalidatePath("/inventory");
@@ -330,7 +330,7 @@ export async function addDistributionAction(
   try {
     const rawData = Object.fromEntries(formData);
     const validatedFields = distributionSchema.parse(rawData);
-    const riceRecord = await db.rice.findUnique({
+    const riceRecord = await db.riceStock.findUnique({
       where: { id: validatedFields.riceId },
     });
 
@@ -367,7 +367,7 @@ export async function addDistributionAction(
         },
       });
 
-      await tx.rice.update({
+      await tx.riceStock.update({
         where: { id: validatedFields.riceId },
         data: {
           stockKg: {
@@ -411,7 +411,7 @@ export async function editDistributionAction(id: string, formData: FormData): Pr
       const diff = newQty - oldQty;
 
       // Check rice stock before update
-      const rice = await tx.rice.findUnique({ where: { id: validatedFields.riceId } });
+      const rice = await tx.riceStock.findUnique({ where: { id: validatedFields.riceId } });
       if (!rice) throw new Error("Rice variety not found");
 
       const newStock = rice.stockKg - diff;
@@ -436,7 +436,7 @@ export async function editDistributionAction(id: string, formData: FormData): Pr
       });
 
       // Adjust rice stock
-      await tx.rice.update({
+      await tx.riceStock.update({
         where: { id: validatedFields.riceId },
         data: {
           stockKg: { decrement: diff }, // if diff positive, subtract more; if negative, add back
@@ -467,7 +467,7 @@ export async function deleteDistributionItemAction(id: string): Promise<{ messag
       });
       if (!existing) throw new Error("Distribution not found");
 
-      const rice = await tx.rice.findUnique({ where: { id: existing.riceId } });
+      const rice = await tx.riceStock.findUnique({ where: { id: existing.riceId } });
       if (!rice) throw new Error("Rice variety not found");
 
       // For safety only in case of data corruption
@@ -480,7 +480,7 @@ export async function deleteDistributionItemAction(id: string): Promise<{ messag
       await tx.employeeDistribution.delete({ where: { id } });
 
       // Restore rice stock
-      await tx.rice.update({
+      await tx.riceStock.update({
         where: { id: existing.riceId },
         data: {
           stockKg: { increment: existing.quantityKg },
@@ -595,7 +595,7 @@ export async function getDashboardMetrics() {
   const endOfYear = new Date(now.getFullYear(), 11, 31, 23, 59, 59);
   
   // Rice stock
-  const riceItems = await db.rice.findMany({
+  const riceItems = await db.riceStock.findMany({
     select: { name: true, stockKg: true, reorderLevel: true },
   });
   const totalStock = riceItems.reduce((sum, r) => sum + r.stockKg, 0);
@@ -636,7 +636,7 @@ interface SafeStockLog {
   comment: string | null
   createdAt: string
   createdById: string
-  rice: Rice
+  rice: RiceStock
   createdBy: User
 }
 
@@ -708,52 +708,52 @@ export async function getStockLogs(
 }
 
 
-export async function getStockLogs2({
-  riceId,
-  action,
-  startDate,
-  endDate,
-  skip = 0,
-  take = 10,
-}: {
-  riceId?: string;
-  action?: "ADD" | "REMOVE";
-  startDate?: Date;
-  endDate?: Date;
-  skip?: number;
-  take?: number;
-}) {
-  const stockLogs = db.riceStockLog.findMany({
-    where: { 
-      riceId, 
-      action,
-      createdAt: {
-        gte: startDate,
-        lte: endDate,
-      }, 
-    },
-    include: {
-      createdBy: true,
-      rice: true,
-    },
-    orderBy: { createdAt: "desc" },
-    skip,
-    take,
-  })
-  const stocks = ( await stockLogs).map((log) => ({ ...log, createdAt: log.createdAt.toISOString(), quantityKg: log.quantityKg.toNumber() }));
+// export async function getStockLogs2({
+//   riceId,
+//   action,
+//   startDate,
+//   endDate,
+//   skip = 0,
+//   take = 10,
+// }: {
+//   riceId?: string;
+//   action?: "ADD" | "REMOVE";
+//   startDate?: Date;
+//   endDate?: Date;
+//   skip?: number;
+//   take?: number;
+// }) {
+//   const stockLogs = db.riceStockLog.findMany({
+//     where: { 
+//       riceId, 
+//       action,
+//       createdAt: {
+//         gte: startDate,
+//         lte: endDate,
+//       }, 
+//     },
+//     include: {
+//       createdBy: true,
+//       rice: true,
+//     },
+//     orderBy: { createdAt: "desc" },
+//     skip,
+//     take,
+//   })
+//   const stocks = ( await stockLogs).map((log) => ({ ...log, createdAt: log.createdAt.toISOString(), quantityKg: log.quantityKg.toNumber() }));
 
-  const total = await db.riceStockLog.count({
-    where: {
-      riceId,
-      action,
-      createdAt: {
-        gte: startDate,
-        lte: endDate,
-      },
-    },
-  });
-  return { stocks, total };
-}
+//   const total = await db.riceStockLog.count({
+//     where: {
+//       riceId,
+//       action,
+//       createdAt: {
+//         gte: startDate,
+//         lte: endDate,
+//       },
+//     },
+//   });
+//   return { stocks, total };
+// }
 
 
 export async function addStockLogAction(
@@ -765,7 +765,7 @@ export async function addStockLogAction(
   try {
     const rawData = Object.fromEntries(formData);
     const validatedFields = stockLogSchema.parse(rawData);
-    const riceRecord = await db.rice.findUnique({
+    const riceRecord = await db.riceStock.findUnique({
       where: { id: validatedFields.riceId },
     });
 
@@ -807,7 +807,7 @@ export async function addStockLogAction(
           ? validatedFields.quantityKg
           : -validatedFields.quantityKg;
 
-      await tx.rice.update({
+      await tx.riceStock.update({
         where: { id: validatedFields.riceId },
         data: {
           stockKg: {
