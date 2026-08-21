@@ -11,6 +11,7 @@ import { ZodError } from "zod";
 import { stockLogSchema } from "./validation/stockLogSchema";
 import { SortingState } from "@tanstack/react-table";
 import { Prisma,  RiceStock,  User } from "@prisma/client";
+import { supplierSchema } from "./validation/supplierSchema";
 
 export const renderError = (error: unknown): { message: string } => {
   if (error instanceof ZodError) {
@@ -695,7 +696,7 @@ export async function getStockLogs(
   const safeRows = rows.map((record) => ({
     id: record.id,
     riceId: record.riceId,
-    quantityKg: record.quantityKg.toNumber(), // ✅ plain number
+    quantityKg: record.quantityKg,
     action: record.action as "ADD" | "REMOVE", // 👈 cast to union type
     comment: record.comment ?? null,
     createdAt: record.createdAt.toISOString(),
@@ -707,53 +708,6 @@ export async function getStockLogs(
   return { safeRows, total }
 }
 
-
-// export async function getStockLogs2({
-//   riceId,
-//   action,
-//   startDate,
-//   endDate,
-//   skip = 0,
-//   take = 10,
-// }: {
-//   riceId?: string;
-//   action?: "ADD" | "REMOVE";
-//   startDate?: Date;
-//   endDate?: Date;
-//   skip?: number;
-//   take?: number;
-// }) {
-//   const stockLogs = db.riceStockLog.findMany({
-//     where: { 
-//       riceId, 
-//       action,
-//       createdAt: {
-//         gte: startDate,
-//         lte: endDate,
-//       }, 
-//     },
-//     include: {
-//       createdBy: true,
-//       rice: true,
-//     },
-//     orderBy: { createdAt: "desc" },
-//     skip,
-//     take,
-//   })
-//   const stocks = ( await stockLogs).map((log) => ({ ...log, createdAt: log.createdAt.toISOString(), quantityKg: log.quantityKg.toNumber() }));
-
-//   const total = await db.riceStockLog.count({
-//     where: {
-//       riceId,
-//       action,
-//       createdAt: {
-//         gte: startDate,
-//         lte: endDate,
-//       },
-//     },
-//   });
-//   return { stocks, total };
-// }
 
 
 export async function addStockLogAction(
@@ -792,13 +746,16 @@ export async function addStockLogAction(
         data: {
           action: validatedFields.action,
           quantityKg: validatedFields.quantityKg,
+          price: validatedFields.price,
           riceId: validatedFields.riceId,
+          supplierId: validatedFields.supplierId,
           comment: validatedFields.comment,
           createdById: userId || "",
         },
         include: {
           rice: true,
           createdBy: true,
+          supplier: true,
         },
       });
 
@@ -830,5 +787,118 @@ export async function addStockLogAction(
   } catch (error: unknown) {
     console.error("Error adding distribution:", error);
     return renderError(error);
+  }
+}
+
+
+/* ------------------ Suppliers Actions ------------------ */
+
+export async function getSuppliersPerPage(pageIndex = 0, pageSize = 10) {
+  const [rows, total] = await Promise.all([
+    db.supplier.findMany({
+      skip: pageIndex * pageSize,
+      take: pageSize,
+      orderBy: { updatedAt: "desc" },
+    }),
+    db.supplier.count(),
+  ])
+  const safeRows = rows.map((record) => ({
+    id: record.id,
+    name: record.name,
+    contact: record.contact,
+    phone: record.phone,
+    email: record.email,
+    address: record.address,
+  }))
+  
+  return { safeRows, total };
+};
+
+export const addSupplierItem = async (
+  prevState: unknown,
+  formData: FormData
+): Promise<{ message: string }> => {
+  try {
+    const rawData = Object.fromEntries(formData);
+    const validatedFields = supplierSchema.parse(rawData);
+    console.log('validatedFields: ', validatedFields);
+    const supplier = await db.supplier.create({
+      data: {
+        ...validatedFields,
+      },
+      include: {
+      },
+    });
+
+    revalidatePath("/suppliers");
+    return {
+      message: JSON.stringify([
+        { message: "Rice item added successfully" },
+        { result: "success" },
+        { supplier },
+      ]),
+    };
+  } catch (error: unknown) {
+
+    if ((error as Error & { code: string }).code === "P2002") {
+      return {
+        message: JSON.stringify([
+          { message: "Supplier already exists" },
+          { result: "error" },
+        ])
+      };
+    } else {
+      return renderError(error);
+    }
+  }
+};
+
+export async function editSupplierItemAction(id: string, formData: FormData): Promise<{ message: string }> {
+  const { userId } = auth();
+  try {
+    const rawData = Object.fromEntries(formData);
+    const validatedFields = supplierSchema.parse(rawData);
+    const supplier = await db.supplier.update({
+      where: { id},
+      data: { ...validatedFields },
+    });
+
+    revalidatePath("/suppliers");
+    return {
+      message: JSON.stringify([
+        { message: "Supplier information updated successfully" },
+        { result: "success" },
+        { supplier },
+      ]),
+    };
+  } catch (err: unknown) {
+    console.error("Update error:", err);
+    return renderError(err);
+  }
+}
+
+export async function deleteSupplierItemAction(id: string): Promise<{ message: string }> {
+  try {
+    await db.supplier.delete({
+      where: { id },
+    });
+    revalidatePath("/suppliers");
+    return {
+      message: JSON.stringify([
+        { message: "Supplier deleted successfully" },
+        { result: "success" },
+      ])
+    };
+  } catch (err: unknown) {
+    if ((err as Error & { code: string }).code === "P2003") {
+      return {
+        message: JSON.stringify([
+          { message: "Unable to delete supplier as it is in use in other modules" },
+          { result: "error" },
+        ])
+      } 
+    } else {
+      return renderError(err);
+    } 
   }
 }

@@ -3,8 +3,8 @@ import { Label } from '../ui/label';
 import { Input } from '../ui/input';
 import { Prisma } from '@prisma/client';
 
-const stockKg = Prisma.RiceScalarFieldEnum.stockKg;
-const reorderLevel = Prisma.RiceScalarFieldEnum.reorderLevel;
+const stockKg = Prisma.RiceStockScalarFieldEnum.stockKg;
+const reorderLevel = Prisma.RiceStockScalarFieldEnum.reorderLevel;
 
 type FormInputNumberProps = {
   fieldName: typeof stockKg | typeof reorderLevel;

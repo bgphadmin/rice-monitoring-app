@@ -33,6 +33,7 @@ interface StockLogManagerProps {
 const defaultFormState = {
     riceId: "",
     quantityKg: 0,
+    price: 0,
     action: "ADD",
     comment: "",
 }
@@ -126,6 +127,10 @@ export default function StockLogManager({ initialRows, riceOptions = [], total }
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-foreground">Quantity (kg)</label>
                                             <Input type="number" step="0.5" name="quantityKg" min="1" value={formValues.quantityKg} onChange={handleFormChange} required />
+                                        </div>
+                                        <div className="space-y-2 sm:col-span-2">
+                                            <label className="text-sm font-medium text-slate-700">Price (Kg)</label><label className="text-sm font-medium text-slate-700"></label>
+                                            <Input type="number" step="0.5" name="priceKg" min="1" value={formValues.price} onChange={handleFormChange} required />
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-foreground">Add/Remove</label>

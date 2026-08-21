@@ -36,8 +36,8 @@ export const FormTextInput = ({
 }
 
 
-const stockKg = Prisma.RiceScalarFieldEnum.stockKg;
-const reorderLevel = Prisma.RiceScalarFieldEnum.reorderLevel;
+const stockKg = Prisma.RiceStockScalarFieldEnum.stockKg;
+const reorderLevel = Prisma.RiceStockScalarFieldEnum.reorderLevel;
 
 type FormInputNumberProps = {
   fieldName: typeof stockKg | typeof reorderLevel;

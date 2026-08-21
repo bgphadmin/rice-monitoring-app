@@ -70,7 +70,8 @@ model RiceStockLog {
   id         String      @id @default(uuid())
   rice       RiceStock   @relation(fields: [riceId], references: [id])
   riceId     String
-  quantityKg Decimal     @db.Decimal(10, 2) // positive for add, negative for remove
+  quantityKg Float
+  price      Float
   action     StockAction
   comment    String?
   createdAt  DateTime    @default(now())
@@ -78,9 +79,26 @@ model RiceStockLog {
   // User who performed the action
   createdBy   User   @relation("StockCreatedBy", fields: [createdById], references: [clerkId])
   createdById String
+
+  // Supplier
+  supplierId  String?
+  supplier    Supplier? @relation(fields: [supplierId], references: [id])
 }
 
 enum StockAction {
   ADD
   REMOVE
+}
+
+model Supplier {
+  id        String   @id @default(uuid())
+  name      String
+  contact   String?
+  phone     String?
+  email     String?
+  address   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  stockLogs RiceStockLog[]
 }

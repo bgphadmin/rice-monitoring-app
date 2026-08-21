@@ -1,8 +1,6 @@
 "use client"
 
 import * as React from "react"
-import InventoryGrid from "@/components/inventory/InventoryGrid"
-import AddInvetoryButton from "@/components/inventory/AddInventoryButton"
 import FormContainer from "@/components/utils/FormContainer"
 import LoadingButton from "@/components/utils/LoadingButton"
 import {
@@ -15,42 +13,43 @@ import {
     AlertDialogCancel,
 } from "@/components/ui/alert-dialog"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
-import { addRiceItem, getRiceItemsPerPage } from "@/utils/actions"
-import { EditRiceItem } from "./EditRiceItem"
-import { InventoryRow } from "./InventoryGrid"
+import { addSupplierItem, getSuppliersPerPage } from "@/utils/actions"
+import { Supplier } from "@prisma/client"
+import SupplierGrid from "./SupplierGrid"
+import { EditSupplierItem } from "./EditSupplierItem"
+import AddSupplierButton from "./AddSupplierButton"
 
-interface InventoryManagerProps {
-    initialRows: InventoryRow[]
+interface SupplierManagerProps {
+    initialRows: Supplier[]
     total: number
 }
 
 const defaultFormState = {
     name: "",
-    stockKg: "",
-    reorderLevel: "",
-    comment: "",
+    contact: "",
+    phone: "",
+    email: "",
+    address: "",
 }
 
-export default function InventoryManager({ initialRows, total }: InventoryManagerProps) {
-    const [rows, setRows] = React.useState<InventoryRow[]>(initialRows)
+export default function SupplierManager({ initialRows, total }: SupplierManagerProps) {
+    const [rows, setRows] = React.useState<Supplier[]>(initialRows)
     const [formValues, setFormValues] = React.useState(defaultFormState)
-    const [selectedRow, setSelectedRow] = React.useState<InventoryRow | null>(null);
+    const [selectedRow, setSelectedRow] = React.useState<Supplier | null>(null);
     const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 })
 
     React.useEffect(() => {
         async function fetchPage() {
-            const { safeRows } = await getRiceItemsPerPage(pagination.pageIndex, pagination.pageSize)
+            const { safeRows } = await getSuppliersPerPage(pagination.pageIndex, pagination.pageSize)
             setRows(safeRows.map((record) => ({
                 id: record.id,
                 name: record.name,
-                stockKg: record.stockKg,
-                reorderLevel: record.reorderLevel,
-                comment: record.comment || "",
-                addedBy: {
-                    firstName: record.addedBy.firstName,
-                    lastName: record.addedBy.lastName,
-                },
+                contact: record.contact,
+                phone: record.phone,
+                email: record.email,
+                address: record.address,
+                createdAt: new Date(),
+                updatedAt: new Date(),
             })))
         }
         fetchPage()
@@ -65,14 +64,14 @@ export default function InventoryManager({ initialRows, total }: InventoryManage
 
     const handleAddSuccess = (state: { message: string }) => {
         const parsed = JSON.parse(state.message)
-        const inventory = parsed[2]?.inventory as InventoryRow | undefined
-        if (inventory) {
-            setRows((prev) => [inventory, ...prev])
+        const supplier = parsed[2]?.supplier as Supplier | undefined
+        if (supplier) {
+            setRows((prev) => [supplier, ...prev])
             setFormValues(defaultFormState)
         }
     }
 
-    const handleEditSuccess = (updated: InventoryRow) => {
+    const handleEditSuccess = (updated: Supplier) => {
         setRows((prev) =>
             prev.map((row) => row.id === updated.id ? updated : row)
         );
@@ -88,35 +87,38 @@ export default function InventoryManager({ initialRows, total }: InventoryManage
         <div className="space-y-6">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                    <h2 className="text-2xl font-bold text-blue-700">Rice Inventory Items</h2>
+                    <h2 className="text-2xl font-bold text-blue-700">Suppliers</h2>
                 </div>
                 <AlertDialog>
-                    <AlertDialogTrigger render={<AddInvetoryButton className="w-full sm:w-auto bg-bgBlue py-7 text-lg rounded-md shadow-xl" />}>
+                    <AlertDialogTrigger render={<AddSupplierButton className="w-full sm:w-auto bg-bgBlue py-7 text-lg rounded-md shadow-xl" />}>
                     </AlertDialogTrigger>
                     <AlertDialogContent className="bg-background border border-gray-200 rounded-2xl p-6 shadow-lg">
                         <AlertDialogHeader>
-                            <AlertDialogTitle className="text-lg text font-semibold">Add Rice Variety</AlertDialogTitle>
+                            <AlertDialogTitle className="text-lg text font-semibold">Add Supplier</AlertDialogTitle>
                         </AlertDialogHeader>
-                        <FormContainer action={addRiceItem} onSuccess={handleAddSuccess}>
+                        <FormContainer action={addSupplierItem} onSuccess={handleAddSuccess}>
                             {({ loading }) => (
                                 <>
                                     <div className="grid gap-4 sm:grid-cols-2">
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium text-foreground">Variety</label>
+                                        <div className="space-y-2 sm:col-span-2">
+                                            <label className="text-sm font-medium text-foreground">Supplier Name</label>
                                             <Input name="name" value={formValues.name} onChange={handleFormChange} required />
                                         </div>
-                                        {/* <div className="space-y-2"> */}
-                                            {/* <label className="text-sm font-medium text-foreground">Stock (kg)</label> */}
-                                            <Input hidden type="number" step="0.5" name="stockKg" value={0}
-                                            defaultValue={0} min="0" onChange={handleFormChange} required />
-                                        {/* </div> */}
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium text-foreground">Reorder Level</label>
-                                            <Input type="number" step="0.5" name="reorderLevel" value={formValues.reorderLevel} min="0" onChange={handleFormChange} required />
+                                        <div className="space-y-2 sm:col-span-2">
+                                            <label className="text-sm font-medium text-foreground">Contact</label>
+                                            <Input name="contact" value={formValues.contact} onChange={handleFormChange} />
                                         </div>
                                         <div className="space-y-2 sm:col-span-2">
-                                            <label className="text-sm font-medium text-foreground">Comment</label>
-                                            <Textarea name="comment" value={formValues.comment} onChange={handleFormChange} rows={3} />
+                                            <label className="text-sm font-medium text-foreground">Phone</label>
+                                            <Input type="tel" name="phone" value={formValues.phone} onChange={handleFormChange} />
+                                        </div>
+                                        <div className="space-y-2 sm:col-span-2">
+                                            <label className="text-sm font-medium text-foreground">Email</label>
+                                            <Input type="email" name="email" value={formValues.email} onChange={handleFormChange} />
+                                        </div>
+                                        <div className="space-y-2 sm:col-span-2">
+                                            <label className="text-sm font-medium text-foreground">Address</label>
+                                            <Input name="address" value={formValues.address} onChange={handleFormChange} />
                                         </div>
                                     </div>
                                     <AlertDialogFooter className="flex flex-col gap-2 sm:flex-row sm:justify-end mt-2">
@@ -124,7 +126,7 @@ export default function InventoryManager({ initialRows, total }: InventoryManage
                                             Cancel
                                         </AlertDialogCancel>
                                         <LoadingButton loading={loading}>
-                                            Add Rice
+                                            Add Supplier
                                         </LoadingButton>
                                     </AlertDialogFooter>
                                 </>
@@ -133,8 +135,8 @@ export default function InventoryManager({ initialRows, total }: InventoryManage
                     </AlertDialogContent>
                 </AlertDialog>
             </div>
-            <InventoryGrid
-                inventory={rows}
+            <SupplierGrid
+                suppliers={rows}
                 onRowClick={(row) => setSelectedRow(row)}
                 total={total}
                 pagination={pagination}
@@ -142,7 +144,7 @@ export default function InventoryManager({ initialRows, total }: InventoryManage
             />
 
             {selectedRow && (
-                <EditRiceItem
+                <EditSupplierItem
                     item={selectedRow}
                     open={true}
                     onOpenChange={(open) => !open && setSelectedRow(null)}
