@@ -70,7 +70,6 @@ export function EditSupplierItem({
                     <input
                         type="text"
                         name="name"
-                        readOnly
                         defaultValue={item.name}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
