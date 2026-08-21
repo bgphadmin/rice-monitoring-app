@@ -31,18 +31,18 @@ model User {
   createdAt        DateTime               @default(now())
   updatedAt        DateTime               @updatedAt
   // Relations
-  riceAdded        Rice[]                 @relation("RiceAddedBy")
+  riceAdded        RiceStock[]            @relation("RiceAddedBy")
   distributionLogs EmployeeDistribution[] @relation("DistributionCreatedBy")
   stockLogs        RiceStockLog[]         @relation("StockCreatedBy")
 }
 
-model Rice {
+model RiceStock {
   id            String                 @id @default(uuid())
   name          String                 @unique
-  stockKg       Float                
-  reorderLevel  Float                
+  stockKg       Float
+  reorderLevel  Float
   comment       String?
-  pricePerKilo  Decimal?               @db.Decimal(10, 2)
+  pricePerKilo  Float?
   updatedAt     DateTime               @updatedAt
   addedBy       User                   @relation("RiceAddedBy", fields: [addedById], references: [clerkId])
   addedById     String
@@ -51,24 +51,24 @@ model Rice {
 }
 
 model EmployeeDistribution {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   firstName   String
   lastName    String
   employeeId  String
-  rice        Rice     @relation(fields: [riceId], references: [id])
+  rice        RiceStock @relation(fields: [riceId], references: [id])
   riceId      String
   quantityKg  Float
   comment     String?
-  dateGiven   DateTime @default(now())
+  dateGiven   DateTime  @default(now())
   // User who created this distribution entry
-  createdBy   User     @relation("DistributionCreatedBy", fields: [createdById], references: [clerkId])
+  createdBy   User      @relation("DistributionCreatedBy", fields: [createdById], references: [clerkId])
   createdById String
   imageUrl    String?
 }
 
 model RiceStockLog {
   id         String      @id @default(uuid())
-  rice       Rice        @relation(fields: [riceId], references: [id])
+  rice       RiceStock   @relation(fields: [riceId], references: [id])
   riceId     String
   quantityKg Decimal     @db.Decimal(10, 2) // positive for add, negative for remove
   action     StockAction
