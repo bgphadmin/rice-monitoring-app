@@ -36,6 +36,7 @@ export default async function RootLayout({
                     <ThemeToggle />
                     <Link href="/dashboard" className="hover:text-green-600">Dashboard</Link>
                     <Link href="/suppliers" className={isAdmin || isSuperUser ? "hover:text-green-600" : "hidden"}>Suppliers</Link>
+                    <Link href="/employees" className={isAdmin || isSuperUser ? "hover:text-green-600" : "hidden"}>Employees</Link>
                     <Link href="/inventory" className={isAdmin || isSuperUser ? "hover:text-green-600" : "hidden"}>Inventory</Link>
                     <Link href="/distribution" className={isAdmin || isSuperUser ? "hover:text-green-600" : "hidden"}>Distribution</Link>
                     <Link href="/stockLog" className={isAdmin || isSuperUser ? "hover:text-green-600" : "hidden"}>Stock Logs</Link>

@@ -25,9 +25,16 @@ interface RiceOption {
     name: string
 }
 
+interface EmployeeOption {
+    id: string
+    firstName: string
+    lastName: string
+}
+
 interface DistributionManagerProps {
     initialRows: DistributionRow[]
     riceOptions: RiceOption[]
+    employeeOptions: EmployeeOption[]
     total: number
 }
 
@@ -41,7 +48,7 @@ const defaultFormState = {
     dateGiven: new Date().toISOString().slice(0, 10),
 }
 
-export default function DistributionManager({ initialRows, riceOptions, total }: DistributionManagerProps) {
+export default function DistributionManager({ initialRows, riceOptions, employeeOptions, total }: DistributionManagerProps) {
     const [rows, setRows] = React.useState<DistributionRow[]>(initialRows)
     const [formValues, setFormValues] = React.useState(defaultFormState)
     const [selectedRow, setSelectedRow] = React.useState<DistributionRow | null>(null);
@@ -65,10 +72,22 @@ export default function DistributionManager({ initialRows, riceOptions, total }:
                     q: globalFilter, startDate, endDate, sort: sorting,
                 })
                 setRows(safeRows.map(r => ({
-                    id: r.id, firstName: r.firstName, lastName: r.lastName,
-                    employeeId: r.employeeId, rice: { name: r.rice.name, id: r.rice.id },
+                    id: r.id,
+                    rice: { 
+                        id: r.rice.id, 
+                        name: r.rice.name 
+                    },
+                    employee: { 
+                        id: r.employee.id, 
+                        firstName: r.employee.firstname, 
+                        lastName: r.employee.lastName 
+                    },
                     quantityKg: r.quantityKg, comment: r.comment || "",
-                    dateGiven: r.dateGiven, createdBy: { firstName: r.createdBy.firstName, lastName: r.createdBy.lastName }
+                    dateGiven: r.dateGiven,
+                    createdBy: { 
+                        firstName: r.createdBy.firstName, 
+                        lastName: r.createdBy.lastName 
+                    }
                 })))
                 setTotalCount(total)
             } catch (err: unknown) {
@@ -92,6 +111,7 @@ export default function DistributionManager({ initialRows, riceOptions, total }:
     const handleAddSuccess = (state: { message: string }) => {
         const parsed = JSON.parse(state.message)
         const distribution = parsed[2]?.distribution as DistributionRow | undefined
+        console.log('distribution: ', distribution)
         if (distribution) {
             setRows((prev) => [distribution, ...prev])
             setFormValues(defaultFormState)
@@ -128,16 +148,21 @@ export default function DistributionManager({ initialRows, riceOptions, total }:
                                 <>
                                     <div className="grid gap-4 sm:grid-cols-2">
                                         <div className="space-y-2">
-                                            <label className="text-sm font-medium text-foreground">First Name</label>
-                                            <Input name="firstName" value={formValues.firstName} onChange={handleFormChange} required />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium text-foreground">Last Name</label>
-                                            <Input name="lastName" value={formValues.lastName} onChange={handleFormChange} required />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-sm font-medium text-foreground">Employee ID</label>
-                                            <Input name="employeeId" value={formValues.employeeId} onChange={handleFormChange} required />
+                                            <label className="text-sm font-medium text-foreground">Employee Name</label>
+                                            <select
+                                                name="employeeId"
+                                                value={formValues.employeeId}
+                                                onChange={handleFormChange}
+                                                required
+                                                className="flex h-11 w-full rounded-xl border border-input bg-input/30 px-3 py-2 text-sm text-foreground outline-none transition-colors focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                                            >
+                                                <option value="">Select employee</option>
+                                                {employeeOptions.map((emp) => (
+                                                    <option key={emp.id} value={emp.id}>
+                                                        {emp.firstName + " " + emp.lastName}
+                                                    </option>
+                                                ))}
+                                            </select>
                                         </div>
                                         <div className="space-y-2">
                                             <label className="text-sm font-medium text-foreground">Rice Variety</label>

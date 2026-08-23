@@ -1,6 +1,4 @@
-﻿"use client"
-
-import * as React from "react"
+﻿import * as React from "react"
 import {
     flexRender,
     SortingState,
@@ -20,103 +18,57 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import mlaTimeConvert from "@/utils/mlaTimeConvert"
+import { Employee } from "@prisma/client"
 
-export type DistributionRow = {
-    id: string
-    employee: {
-        id: string
-        firstName: string
-        lastName: string
-    }
-    rice: {
-        name: string
-        id: string
-    }
-    quantityKg: number
-    comment: string | null
-    dateGiven: string
-    createdBy: {
-        firstName: string
-        lastName: string
-    }
-}
-
-
-const columnHelper = createColumnHelper<DistributionRow>()
+const columnHelper = createColumnHelper<Employee>()
 
 const columns = [
-    columnHelper.accessor("employee.firstName", {
-        id: "employee.firstName",
+    columnHelper.accessor("firstName", {
         header: "First Name",
     }),
-    columnHelper.accessor("employee.lastName", {
-        id: "employee.lastName",
+    columnHelper.accessor("lastName", {
         header: "Last Name",
     }),
-    columnHelper.accessor("rice.name", {
-        id: "rice.name",
-        header: "Rice Type",
+    columnHelper.accessor("employeeId", {
+        header: "Employee ID",
     }),
-    columnHelper.accessor("quantityKg", {
-        header: "Quantity (kg)",
+    columnHelper.accessor("phone", {
+        header: "Phone",
     }),
-    columnHelper.accessor("dateGiven", {
-        header: "Date Given",
-        cell: (info) => {
-            const value = info.getValue() as string
-            return mlaTimeConvert(value, true)
-        },
-    }),
-    columnHelper.accessor("comment", {
-        header: "Comment",
-        cell: (info) => info.getValue() ?? "-",
-        enableSorting: false,
-    }),
-    columnHelper.accessor((row) => `${row.createdBy.firstName} ${row.createdBy.lastName}`, {
-        id: "createdBy",
-        header: "Entered By",
-        enableSorting: false,
+    columnHelper.accessor("active", {
+        header: "Active",
     }),
 ]
 
-interface DistributionGridProps {
-    distributions: DistributionRow[]
+interface EmployeeGridProps {
+    employees: Employee[]
     total: number
     pagination: { pageIndex: number; pageSize: number }
     onPaginationChange: React.Dispatch<
         React.SetStateAction<{ pageIndex: number; pageSize: number }>
     >
-    onRowClick?: (row: DistributionRow) => void
-    sorting: SortingState
-    onSortingChange: (updaterOrValue: SortingState | ((old: SortingState) => SortingState)) => void
-    globalFilter?: string
-    onGlobalFilterChange?: (value: string) => void
+    onRowClick?: (row: Employee) => void
 }
 
-export default function DistributionGrid({
-    distributions,
+export default function EmployeeGrid({
+    employees,
     total,
     pagination,
     onPaginationChange,
-    onRowClick,
-    sorting,
-    onSortingChange,
-    globalFilter = "",
-    onGlobalFilterChange,
-}: DistributionGridProps) {
-
+    onRowClick, }: EmployeeGridProps) {
+    const [sorting, setSorting] = React.useState<SortingState>([])
+    const [globalFilter, setGlobalFilter] = React.useState("")
     const table = useReactTable({
-        data: distributions,
+        data: employees,
         columns,
         state: { sorting, globalFilter, pagination },
-        onSortingChange,
-        onGlobalFilterChange,
+        onSortingChange: setSorting,
+        onGlobalFilterChange: setGlobalFilter,
         onPaginationChange,
         pageCount: Math.ceil(total / pagination.pageSize), // 👈 server-side page count
         manualPagination: true, // 👈 tells TanStack we fetch data manually
-        manualSorting: true, // 👈 important: sorting handled server-side
         getCoreRowModel: getCoreRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getSortedRowModel: getSortedRowModel(),
@@ -125,19 +77,28 @@ export default function DistributionGrid({
 
     return (
         <div className="space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <Input
+                    placeholder="Filter distributions..."
+                    value={globalFilter}
+                    onChange={(event) => setGlobalFilter(event.target.value)}
+                    className="max-w-md"
+                />
+            </div>
+
             <div className="overflow-auto bg-background shadow-sm">
                 <Table className="min-w-full">
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id} className="whitespace-nowrap bg-green-500">
+                                    <TableHead key={header.id} className="whitespace-nowrap bg-blue-500">
                                         {header.isPlaceholder ? null : (
                                             <button
                                                 type="button"
                                                 onClick={header.column.getToggleSortingHandler()}
                                                 className={cn(
-                                                    "flex items-center gap-2 text-left text-sm font-semibold text-slate-900",
+                                                    "flex items-center gap-2 text-left text-sm font-semibold text-foreground",
                                                     header.column.getCanSort() ? "cursor-pointer" : "cursor-default"
                                                 )}
                                             >
@@ -163,17 +124,13 @@ export default function DistributionGrid({
                                     key={row.id}
                                     onClick={onRowClick ? () => onRowClick(row.original) : undefined}
                                     className={cn(
-                                        rowIndex % 2 === 0 ? "bg-bgGreen" : undefined,
-                                        onRowClick ? "cursor-pointer hover:bg-green-500" : undefined
+                                        rowIndex % 2 === 0 ? "bg-bgBlue" : undefined,
+                                        onRowClick ? "cursor-pointer hover:bg-blue-500" : undefined
                                     )}
                                 >
                                     {row.getAllCells().map((cell) => (
                                         <TableCell key={cell.id} className="align-top py-3 px-3 text-sm text-foreground">
-                                            {cell.column.id === "quantityKg" ? (
-                                                <span className="font-medium">{String(cell.getValue())}</span>
-                                            ) : (
-                                                <span>{flexRender(cell.column.columnDef.cell, cell.getContext())}</span>
-                                            )}
+                                            <span>{flexRender(cell.column.columnDef.cell, cell.getContext())}</span>
                                         </TableCell>
                                     ))}
                                 </TableRow>
@@ -181,7 +138,7 @@ export default function DistributionGrid({
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={columns.length} className="p-6 text-center text-sm text-slate-500">
-                                    No distribution records match your filter.
+                                    No supplier records match your filter.
                                 </TableCell>
                             </TableRow>
                         )}

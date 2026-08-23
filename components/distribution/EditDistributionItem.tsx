@@ -6,7 +6,7 @@ import {
     AlertDialogFooter,
     AlertDialogCancel,
 } from "@/components/ui/alert-dialog"; // shadcn/ui import
-import { deleteDistributionItemAction, editDistributionAction, getRiceItem } from "@/utils/actions";
+import { deleteDistributionItemAction, editDistributionAction, getEmployeeItem, getRiceItem } from "@/utils/actions";
 import LoadingButton from "../utils/LoadingButton";
 import toast from "react-hot-toast";
 import { useState } from "react";
@@ -15,26 +15,15 @@ import { DistributionRow } from "@/utils/types";
 import { revalidatePath } from "next/cache";
 import { ConfirmDeleteDialog } from "../utils/ConfirmDeleteDialog";
 
-// export type DistributionRow = {
-//     id: string
-//     firstName: string
-//     lastName: string
-//     employeeId: string
-//     rice: {
-//         name: string
-//     }
-//     quantityKg: number
-//     comment: string | null
-//     dateGiven: string
-//     createdBy: {
-//         firstName: string
-//         lastName: string
-//     }
-// }
-
 export type RiceOption = {
     id: string
     name: string
+};
+
+export type EmployeeOption = {
+    id: string
+    firstName: string
+    lastName: string
 };
 
 
@@ -44,13 +33,35 @@ export function EditDistributionItem({
     onOpenChange,
     onEditSuccess,
     onDeleteSuccess,
-    riceOptions }: {
-        item: { id: string; firstName: string; lastName: string; employeeId: string; rice: { id: string; name: string; }; quantityKg: number; dateGiven: string; createdBy: { firstName: string; lastName: string; }; comment: string | null; },
-        open: boolean,
-        onOpenChange: (open: boolean) => void, showTrigger?: boolean,
-        onEditSuccess?: (updated: DistributionRow) => void,
-        onDeleteSuccess?: (deleteId: string) => void, riceOptions: RiceOption[]
-    }) {
+    riceOptions,
+    // employeeOptions }: {
+}: {
+    item: {
+        id: string;
+        employee: {
+            id: string;
+            firstName: string;
+            lastName: string;
+        };
+        rice: {
+            id: string;
+            name: string;
+        };
+        quantityKg: number;
+        dateGiven: string;
+        createdBy: {
+            firstName: string;
+            lastName: string;
+        };
+        comment: string | null;
+    },
+    open: boolean,
+    onOpenChange: (open: boolean) => void, showTrigger?: boolean,
+    onEditSuccess?: (updated: DistributionRow) => void,
+    onDeleteSuccess?: (deleteId: string) => void,
+    riceOptions: RiceOption[],
+    // employeeOptions: EmployeeOption[]
+}) {
 
     const [deleting, setDeleting] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -66,11 +77,19 @@ export function EditDistributionItem({
         if (parsedMessage.length == 3 && parsedMessage[1].result == 'success') {
             toast.success(parsedMessage[0].message);
             const riceItem = await getRiceItem(formData.get("riceId") as string);
+            const employeeItem = await getEmployeeItem(formData.get("employeeId") as string);
             const updatedRow: DistributionRow = {
                 ...item,
-                firstName: formData.get("firstName") as string,
-                lastName: formData.get("lastName") as string,
-                employeeId: formData.get("employeeId") as string,
+                // firstName: formData.get("name") as string,
+                // lastName: formData.get("lastName") as string,
+                // employeeId: formData.get("employeeId") as string,
+                employee: {
+                    // firstName: formData.get("firstName") as string,
+                    // lastName: formData.get("lastName") as string,
+                    firstName: employeeItem?.firstName as string,
+                    lastName: employeeItem?.lastName as string,
+                    id: formData.get("employeeId") as string
+                },
                 rice: {
                     name: riceItem?.name as string,
                     id: formData.get("riceId") as string
@@ -107,33 +126,13 @@ export function EditDistributionItem({
         <AlertDialog open={open} onOpenChange={onOpenChange}>
             <AlertDialogContent className="bg-background border border-gray-200 rounded-lg p-6">
                 <form action={handleSubmit} className="space-y-4">
-                    <label className="block text-sm font-medium text-foreground">First Name</label>
-                    <input
-                        type="text"
-                        name="firstName"
-                        defaultValue={item.firstName}
-                        className="w-full rounded-md border border-gray-300 px-3 py-2"
-                    />
-                    <label className="block text-sm font-medium text-foreground">Last Name</label>
-                    <input
-                        type="text"
-                        name="lastName"
-                        defaultValue={item.lastName}
-                        className="w-full rounded-md border border-gray-300 px-3 py-2"
-                    />
-                    <label className="block text-sm font-medium text-foreground">Employee ID</label>
-                    <input
-                        type="text"
-                        name="employeeId"
-                        defaultValue={item.employeeId}
-                        className="w-full rounded-md border border-gray-300 px-3 py-2"
-                    />
-                    <input type="hidden" name="riceId" value={item.rice.id} />
+                    <label className="block text-sm font-medium text-foreground">Employee Name</label>
+                    <input hidden type="text" name="employeeId" value={item.employee.id} />
+                    <input disabled type="text" id="employeeId" value={item.employee.firstName + " " + item.employee.lastName} />
                     <label className="block text-sm font-medium text-foreground"> Rice Variety</label>
+                    <input hidden type="text" name="riceId" value={item.rice.id} />
                     <select
-                        // name="riceId"
                         defaultValue={item.rice.id}
-                        // value={item.rice.name}
                         disabled
                         id="name"
                         required
@@ -150,6 +149,7 @@ export function EditDistributionItem({
                     <input
                         type="number"
                         name="quantityKg"
+                        step="0.50"
                         defaultValue={item.quantityKg}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
@@ -184,7 +184,7 @@ export function EditDistributionItem({
                             Save
                         </LoadingButton>
                         <ConfirmDeleteDialog
-                            itemName={item.firstName + " " + item.lastName + " - " + item.rice.name + " rice"}
+                            itemName={item.employee.firstName + " " + item.employee.lastName}
                             deleting={deleting}
                             onDelete={handleDelete}
                             trigger={

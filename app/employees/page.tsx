@@ -2,37 +2,39 @@ import dynamic from "next/dynamic"
 import SkeletonTable from "@/components/utils/SkeletonTable"
 import verifyUser from "@/utils/userValidation"
 import { redirect } from "next/navigation"
-import { getSuppliersPerPage } from "@/utils/actions"
-import { Supplier } from "@prisma/client"
+import { getEmployeesPerPage } from "@/utils/actions"
+import { Employee } from "@prisma/client"
 
-const SupplierManager = dynamic(
-    () => import("@/components/supplier/SupplierManager"),
+const EmployeeManager = dynamic(
+    () => import("@/components/employee/EmployeeManager"),
     {
         ssr: false,
         loading: () => <SkeletonTable />,
     }
 )
 
-const SuppliersPage = async () => {
+const EmployeePage = async () => {
     const isSuperuser = await verifyUser("SUPERUSER");
     const isAdmin = await verifyUser("ADMIN");
     if (!isSuperuser && !isAdmin) return redirect('/');
-    const { safeRows: suppliers, total } = await getSuppliersPerPage(0, 10)
 
-    const rows: Supplier[] = suppliers.map((record) => ({
+    // const distributions = await getDistributions()
+    const { safeRows: employees, total } = await getEmployeesPerPage(0, 10)
+
+    const rows: Employee[] = employees.map((record) => ({
         id: record.id,
-        name: record.name,
-        contact: record.contact,
+        firstName: record.firstName,
+        lastName: record.lastName,
+        employeeId: record.employeeId,
         phone: record.phone,
-        email: record.email,
-        address: record.address,
+        active: record.active,
         createdAt: new Date(),
         updatedAt: new Date(),
     }))
 
     return (
         <section className="space-y-8">
-            <SupplierManager
+            <EmployeeManager
                 initialRows={rows}
                 total={total}
             />
@@ -40,4 +42,4 @@ const SuppliersPage = async () => {
     )
 }
 
-export default SuppliersPage
+export default EmployeePage

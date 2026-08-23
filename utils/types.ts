@@ -10,9 +10,7 @@ export type RiceOption = {
 
 export type DistributionRow = {
   id: string;
-  firstName: string;
-  lastName: string;
-  employeeId: string;
+  employee: { id: string; firstName: string; lastName: string };
   rice: { name: string; id: string };
   quantityKg: number;
   comment: string | null;

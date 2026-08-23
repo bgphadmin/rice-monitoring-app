@@ -52,8 +52,7 @@ model RiceStock {
 
 model EmployeeDistribution {
   id          String    @id @default(uuid())
-  firstName   String
-  lastName    String
+  employee    Employee  @relation(fields: [employeeId], references: [id])
   employeeId  String
   rice        RiceStock @relation(fields: [riceId], references: [id])
   riceId      String
@@ -81,8 +80,8 @@ model RiceStockLog {
   createdById String
 
   // Supplier
-  supplierId  String?
-  supplier    Supplier? @relation(fields: [supplierId], references: [id])
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id])
 }
 
 enum StockAction {
@@ -101,4 +100,26 @@ model Supplier {
   updatedAt DateTime @updatedAt
 
   stockLogs RiceStockLog[]
+}
+
+model Employee {
+  id                    String                 @id @default(uuid())
+  firstName             String
+  lastName              String
+  employeeId            String                 @unique
+  phone                 String?
+  active                Boolean                @default(true)
+  // 👇 New relation to stipend QR stubs
+  qrStubs               QRStub[]
+  employeeDistributions EmployeeDistribution[]
+}
+
+model QRStub {
+  id         String   @id @default(uuid())
+  employeeId String
+  month      Int // e.g., 8 for August
+  year       Int // e.g., 2026
+  redeemed   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  employee   Employee @relation(fields: [employeeId], references: [id])
 }

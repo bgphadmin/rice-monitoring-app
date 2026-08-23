@@ -6,38 +6,38 @@ import {
     AlertDialogFooter,
     AlertDialogCancel,
 } from "@/components/ui/alert-dialog"; // shadcn/ui import
-import { deleteSupplierItemAction, editSupplierItemAction } from "@/utils/actions";
+import { deleteEmployeeItemAction, editEmployeeItemAction } from "@/utils/actions";
 import LoadingButton from "../utils/LoadingButton";
 import toast from "react-hot-toast";
 import { useState } from "react";
 import LoadingDeleteButton from "../utils/LoadingDeleteButton";
 import { ConfirmDeleteDialog } from "../utils/ConfirmDeleteDialog";
-import { Supplier } from "@prisma/client";
+import { Employee } from "@prisma/client";
 
-export function EditSupplierItem({
+export function EditEmployeeItem({
     item,
     open,
     onOpenChange,
     onEditSuccess,
-    onDeleteSuccess, }: { item: Supplier, open: boolean, onOpenChange: (open: boolean) => void, showTrigger?: boolean, onEditSuccess?: (updated: Supplier) => void, onDeleteSuccess?: (deleteId: string) => void }) {
+    onDeleteSuccess, }: { item: Employee, open: boolean, onOpenChange: (open: boolean) => void, showTrigger?: boolean, onEditSuccess?: (updated: Employee) => void, onDeleteSuccess?: (deleteId: string) => void }) {
 
     const [deleting, setDeleting] = useState(false);
     const [saving, setSaving] = useState(false);
 
     const handleSubmit = async (formData: FormData) => {
         setSaving(true);
-        const result = await editSupplierItemAction(item.id, formData);
+        const result = await editEmployeeItemAction(item.id, formData);
         const parsedMessage = JSON.parse(result.message);
 
         if (parsedMessage.length == 3 && parsedMessage[1].result == 'success') {
             toast.success(parsedMessage[0].message);
-            const updatedRow: Supplier = {
+            const updatedRow: Employee = {
                 ...item,
-                name: formData.get("name") as string,
-                address: formData.get("address") as string || null,
+                firstName: formData.get("firstName") as string,
+                lastName: formData.get("lastName") as string,
+                employeeId: formData.get("employeeId") as string,
                 phone: formData.get("phone") as string || null,
-                email: formData.get("email") as string || null,
-                contact: formData.get("contact") as string || null
+                active: formData.has("active"),
             };
             onOpenChange(false);
             onEditSuccess?.(updatedRow);
@@ -50,12 +50,11 @@ export function EditSupplierItem({
 
     const handleDelete = async () => {
         setDeleting(true);
-        const result = await deleteSupplierItemAction(item.id);
+        const result = await deleteEmployeeItemAction(item.id);
         const parsedMessage = JSON.parse(result.message);
         if (parsedMessage[1].result === "success") {
             toast.success(parsedMessage[0].message);
             onOpenChange(false);
-            // Instead of updated row, you may want to trigger a refresh in parent
             onDeleteSuccess?.(item.id);
         } else {
             toast.error(parsedMessage[0].message);
@@ -66,41 +65,44 @@ export function EditSupplierItem({
         <AlertDialog open={open} onOpenChange={onOpenChange}>
             <AlertDialogContent className="bg-background border border-gray-200 rounded-lg p-6">
                 <form action={handleSubmit} className="space-y-4">
-                    <label className="block text-sm font-medium text-foreground">Supplier Name</label>
+                    <label className="block text-sm font-medium text-foreground">First Name</label>
                     <input
                         type="text"
-                        name="name"
-                        defaultValue={item.name}
+                        name="firstName"
+                        defaultValue={item.firstName}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
-                    <label className="block text-sm font-medium text-foreground">Contact</label>
+                    <label className="block text-sm font-medium text-foreground">Last Name</label>
                     <input
                         type="text"
-                        name="contact"
-                        defaultValue={item.contact || ""}
+                        name="lastName"
+                        defaultValue={item.lastName}
+                        className="w-full rounded-md border border-gray-300 px-3 py-2"
+                    />
+                    <label className="block text-sm font-medium text-foreground">Employee ID</label>
+                    <input
+                        type="text"
+                        name="employeeId"
+                        defaultValue={item.employeeId}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
                     <label className="block text-sm font-medium text-foreground">Phone</label>
                     <input
-                        type="text"
+                        type="tel"
                         name="phone"
                         defaultValue={item.phone || ""}
                         className="w-full rounded-md border border-gray-300 px-3 py-2"
                     />
-                    <label className="block text-sm font-medium text-foreground">Email</label>
-                    <input
-                        type="text"
-                        name="email"
-                        defaultValue={item.email || ""}
-                        className="w-full rounded-md border border-gray-300 px-3 py-2"
-                    />
-                    <label className="block text-sm font-medium text-foreground">Address</label>
-                    <input
-                        type="text"
-                        name="address"
-                        defaultValue={item.address || ""}
-                        className="w-full rounded-md border border-gray-300 px-3 py-2"
-                    />
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            name="active"
+                            defaultChecked={item.active}
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        />
+                        <label className="text-sm font-medium text-foreground">Active</label>
+                    </div>
+
                     <AlertDialogFooter className="flex flex-row gap-2">
                         <AlertDialogCancel className="flex-1 items-center justify-center gap-2 rounded-md bg-slate-500 px-6 py-2 text-white hover:bg-slate-700 disabled:opacity-50 shadow-2xl transition-all duration-200 hover:-translate-y-1 hover:shadow-xl active:translate-y-0 h-11">
                             Cancel
@@ -113,7 +115,7 @@ export function EditSupplierItem({
                             Save
                         </LoadingButton>
                         <ConfirmDeleteDialog
-                            itemName={item.name}
+                            itemName={item.firstName + " " + item.lastName}
                             deleting={deleting}
                             onDelete={handleDelete}
                             trigger={

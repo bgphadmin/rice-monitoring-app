@@ -1,6 +1,6 @@
 import dynamic from "next/dynamic"
 import type { DistributionRow } from "@/components/distribution/DistributionGrid"
-import { getDistributionsPerPage, getRiceItems } from "@/utils/actions"
+import { getDistributionsPerPage, getEmplpoyeeItems, getRiceItems } from "@/utils/actions"
 import SkeletonTable from "@/components/utils/SkeletonTable"
 import verifyUser from "@/utils/userValidation"
 import { redirect } from "next/navigation"
@@ -21,12 +21,15 @@ const DistributionPage = async () => {
 
     const { safeRows: distributions, total } = await getDistributionsPerPage({ pageIndex: 0, pageSize: 10 })
     const riceItems = await getRiceItems()
+    const employeeItems = await getEmplpoyeeItems()
 
     const rows: DistributionRow[] = distributions.map((record) => ({
         id: record.id,
-        firstName: record.firstName,
-        lastName: record.lastName,
-        employeeId: record.employeeId,
+        employee: {
+            id: record.employee.id,
+            firstName: record.employee.firstname,
+            lastName: record.employee.lastName
+        },
         rice: {
             name: record.rice.name,
             id: record.rice.id
@@ -45,6 +48,7 @@ const DistributionPage = async () => {
             <DistributionManager
                 initialRows={rows}
                 riceOptions={riceItems.map((rice) => ({ id: rice.id, name: rice.name }))}
+                employeeOptions={employeeItems.map((employee) => ({ id: employee.id, firstName: employee.firstName, lastName: employee.lastName }))}
                 total={total}
             />
         </section>

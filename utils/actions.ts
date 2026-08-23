@@ -13,6 +13,7 @@ import { SortingState } from "@tanstack/react-table";
 import { Prisma,  RiceStock,  RiceStockLog,  Supplier,  User } from "@prisma/client";
 import { supplierSchema } from "./validation/supplierSchema";
 import { StockLog } from "./types";
+import { employeeSchema } from "./validation/employeeSchema";
 
 export const renderError = (error: unknown): { message: string } => {
   if (error instanceof ZodError) {
@@ -285,8 +286,10 @@ export async function getDistributionsPerPage({
 
   if (q) {
     where.OR = [
-      { firstName: { contains: q, mode: "insensitive" } },
-      { lastName: { contains: q, mode: "insensitive" } },
+      // { firstName: { contains: q, mode: "insensitive" } },
+      // { lastName: { contains: q, mode: "insensitive" } },
+      { employee: { firstName: { contains: q, mode: "insensitive" } } },
+      { employee: { lastName: { contains: q, mode: "insensitive" } } },
       { rice: { name: { contains: q, mode: "insensitive" } } },
     ]
   }
@@ -295,6 +298,10 @@ const orderBy: Prisma.EmployeeDistributionOrderByWithRelationInput =
   sort && sort.length
     ? sort[0].id === "rice.name"
       ? { rice: { name: sort[0].desc ? "desc" : "asc" } }
+      : sort[0].id === "employee.firstName"
+      ? { employee: { firstName: sort[0].desc ? "desc" : "asc" } }
+      : sort[0].id === "employee.lastName"
+      ? { employee: { lastName: sort[0].desc ? "desc" : "asc" } }      
       : { [sort[0].id]: (sort[0].desc ? "desc" : "asc") as Prisma.SortOrder }
     : { dateGiven: "desc" }
 
@@ -304,7 +311,7 @@ const orderBy: Prisma.EmployeeDistributionOrderByWithRelationInput =
       take: pageSize,
       orderBy,
       where,
-      include: { createdBy: true, rice: true },
+      include: { createdBy: true, rice: true, employee: true },
     }),
     db.employeeDistribution.count({ where }),
   ])
@@ -313,7 +320,15 @@ const orderBy: Prisma.EmployeeDistributionOrderByWithRelationInput =
     {
       ...record,
       dateGiven: record.dateGiven.toISOString(),
-      rice: { name: record.rice.name, id: record.rice.id },
+      rice: { 
+        id: record.rice.id, 
+        name: record.rice.name 
+      },
+      employee: { 
+        id: record.employee.id, 
+        firstname: record.employee.firstName, 
+        lastName: record.employee.lastName,
+      },
       createdBy: {
         firstName: record.createdBy.firstName,
         lastName: record.createdBy.lastName,
@@ -354,8 +369,8 @@ export async function addDistributionAction(
     const result = await db.$transaction(async (tx) => {
       const distribution = await tx.employeeDistribution.create({
         data: {
-          firstName: validatedFields.firstName,
-          lastName: validatedFields.lastName,
+          // firstName: validatedFields.firstName,
+          // lastName: validatedFields.lastName,
           employeeId: validatedFields.employeeId,
           riceId: validatedFields.riceId,
           quantityKg: validatedFields.quantityKg,
@@ -366,6 +381,7 @@ export async function addDistributionAction(
         include: {
           rice: true,
           createdBy: true,
+          employee: true
         },
       });
 
@@ -425,8 +441,8 @@ export async function editDistributionAction(id: string, formData: FormData): Pr
       const updated = await tx.employeeDistribution.update({
         where: { id },
         data: {
-          firstName: validatedFields.firstName,
-          lastName: validatedFields.lastName,
+          // firstName: validatedFields.firstName,
+          // lastName: validatedFields.lastName,
           employeeId: validatedFields.employeeId,
           quantityKg: newQty,
           comment: validatedFields.comment,
@@ -434,7 +450,7 @@ export async function editDistributionAction(id: string, formData: FormData): Pr
           riceId: validatedFields.riceId,
           createdById: userId || "",
         },
-        include: { createdBy: true, rice: true },
+        include: { createdBy: true, rice: true, employee: true },
       });
 
       // Adjust rice stock
@@ -832,19 +848,16 @@ export const addSupplierItem = async (
   try {
     const rawData = Object.fromEntries(formData);
     const validatedFields = supplierSchema.parse(rawData);
-    console.log('validatedFields: ', validatedFields);
     const supplier = await db.supplier.create({
       data: {
         ...validatedFields,
-      },
-      include: {
       },
     });
 
     revalidatePath("/suppliers");
     return {
       message: JSON.stringify([
-        { message: "Rice item added successfully" },
+        { message: "Supplier added successfully" },
         { result: "success" },
         { supplier },
       ]),
@@ -905,6 +918,136 @@ export async function deleteSupplierItemAction(id: string): Promise<{ message: s
       return {
         message: JSON.stringify([
           { message: "Unable to delete supplier as it is in use in other modules" },
+          { result: "error" },
+        ])
+      } 
+    } else {
+      return renderError(err);
+    } 
+  }
+}
+
+/* ------------------ Employees Actions ------------------ */
+export async function getEmplpoyeeItems() {
+  return db.employee.findMany({ 
+    orderBy: {
+      firstName: "asc",},
+  });
+}
+
+export async function getEmployeeItem(id: string){
+  return await db.employee.findUnique ({ 
+      select: { firstName: true, lastName: true },
+      where: { id } 
+    });
+}
+
+export async function getEmployeeOptions() {
+  return await db.employee.findMany({
+    select: { id: true, firstName: true, lastName: true },
+    orderBy: { firstName: "asc" },
+  });
+}
+
+export async function getEmployeesPerPage(pageIndex = 0, pageSize = 10) {
+  const [rows, total] = await Promise.all([
+    db.employee.findMany({
+      skip: pageIndex * pageSize,
+      take: pageSize,
+      orderBy: { firstName: "asc" },
+    }),
+    db.employee.count(),
+  ])
+  const safeRows = rows.map((record) => ({
+    id: record.id,
+    firstName: record.firstName,
+    lastName: record.lastName,
+    employeeId: record.employeeId,
+    phone: record.phone,
+    active: record.active,
+  }))
+  
+  return { safeRows, total };
+};
+
+
+export const addEmployeeItem = async (
+  prevState: unknown,
+  formData: FormData
+): Promise<{ message: string }> => {
+  try {
+    const rawData = Object.fromEntries(formData);
+    const validatedFields = employeeSchema.parse(rawData);
+    const employee = await db.employee.create({
+      data: {
+        ...validatedFields,
+      },
+    });
+
+    revalidatePath("/employees");
+    return {
+      message: JSON.stringify([
+        { message: "Employee added successfully" },
+        { result: "success" },
+        { employee },
+      ]),
+    };
+  } catch (error: unknown) {
+
+    if ((error as Error & { code: string }).code === "P2002") {
+      return {
+        message: JSON.stringify([
+          { message: "Employee already exists" },
+          { result: "error" },
+        ])
+      };
+    } else {
+      return renderError(error);
+    }
+  }
+};
+
+export async function editEmployeeItemAction(id: string, formData: FormData): Promise<{ message: string }> {
+  const { userId } = auth();
+  try {
+    const rawData = Object.fromEntries(formData);
+    const validatedFields = employeeSchema.parse(rawData);
+    const employee = await db.employee.update({
+      where: { id},
+      data: { ...validatedFields },
+    });
+
+    revalidatePath("/employees");
+    return {
+      message: JSON.stringify([
+        { message: "Employee information updated successfully" },
+        { result: "success" },
+        { employee },
+      ]),
+    };
+  } catch (err: unknown) {
+    console.error("Update error:", err);
+    return renderError(err);
+  }
+}
+
+export async function deleteEmployeeItemAction(id: string): Promise<{ message: string }> {
+  try {
+    await db.employee.delete({
+      where: { id },
+    });
+    revalidatePath("/employees");
+    return {
+      message: JSON.stringify([
+        { message: "Employee deleted successfully" },
+        { result: "success" },
+      ])
+    };
+  } catch (err: unknown) {
+    if ((err as Error & { code: string }).code === "P2003") {
+      return {
+        message: JSON.stringify([
+          { message: "Unable to delete employee as it is in use in other modules" },
           { result: "error" },
         ])
       } 
