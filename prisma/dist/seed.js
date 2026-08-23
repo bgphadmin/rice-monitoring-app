@@ -48,17 +48,17 @@ function main() {
                     employees = Array.from({ length: 50 }).map(function (_, i) { return ({
                         firstName: faker_1.faker.person.firstName(),
                         lastName: faker_1.faker.person.lastName(),
-                        employeeId: "EMP".concat(String(i + 1).padStart(3, "0")), // EMP001 → EMP050
+                        employeeId: "EMP".concat(String(i + 101).padStart(3, "0")), // EMP001 → EMP050
                         phone: faker_1.faker.helpers.replaceSymbols("09#########"), // PH-style mobile number
                         active: true,
                     }); });
                     return [4 /*yield*/, prisma.employee.createMany({
                             data: employees,
-                            skipDuplicates: true,
+                            skipDuplicates: true, // avoids errors if rerun
                         })];
                 case 1:
                     _a.sent();
-                    console.log("✅ Seeded 50 employees with realistic names and phone numbers");
+                    console.log("✅ Seeded 50 employees with realistic names and PH-style phone numbers");
                     return [2 /*return*/];
             }
         });

@@ -24,7 +24,7 @@ export default async function RootLayout({
   const isAdmin = await verifyUser("ADMIN");
   return (
     <ClerkProvider>
-      <html lang="en">
+      <html lang="en" suppressHydrationWarning>
         <body >
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
             <header className="border-b  shadow-sm">

@@ -21,7 +21,6 @@ import EmployeeGrid from "./EmployeeGrid"
 
 interface EmployeeManagerProps {
     initialRows: Employee[]
-    total: number
 }
 
 const defaultFormState = {
@@ -32,23 +31,25 @@ const defaultFormState = {
     phone: "",
 }
 
-export default function EmployeeManager({ initialRows, total }: EmployeeManagerProps) {
+export default function EmployeeManager({ initialRows }: EmployeeManagerProps) {
     const [rows, setRows] = React.useState<Employee[]>(initialRows)
     const [formValues, setFormValues] = React.useState(defaultFormState)
     const [selectedRow, setSelectedRow] = React.useState<Employee | null>(null);
     const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 })
     const [sorting, setSorting] = React.useState<{ id: string; desc: boolean }[]>([])
     const [filter, setFilter] = React.useState("")
+    const [total, setTotal] = React.useState(0)
 
     React.useEffect(() => {
         async function fetchPage() {
-            const { safeRows } = await getEmployeesPerPage({
+            const { safeRows, total: newTotal } = await getEmployeesPerPage({
                 pageIndex: pagination.pageIndex,
                 pageSize: pagination.pageSize,
                 q: filter,
                 sort: sorting,
             })
             setRows(safeRows)
+            setTotal(newTotal)
         }
         fetchPage()
     }, [pagination, sorting, filter])

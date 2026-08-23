@@ -65,6 +65,15 @@ export default function EmployeeGrid({
     onFilterChange,
     onRowClick
 }: EmployeeGridProps) {
+    const [localFilter, setLocalFilter] = React.useState(filter)
+    // 🔑 Debounce: update parent filter only after 300ms pause
+    React.useEffect(() => {
+        const handler = setTimeout(() => {
+            onFilterChange(localFilter)
+            onPaginationChange({ pageIndex: 0, pageSize: pagination.pageSize }) // reset to first page
+        }, 300)
+        return () => clearTimeout(handler)
+    }, [localFilter, onFilterChange, onPaginationChange, pagination.pageSize])
     const table = useReactTable({
         data: employees,
         columns,
@@ -81,15 +90,12 @@ export default function EmployeeGrid({
 
     return (
         <div className="space-y-4">
+            {/* 🔑 Filter input with debounce */}
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Input
                     placeholder="Filter employees..."
-                    value={filter}
-                    onChange={(event) => {
-                        onFilterChange(event.target.value)
-                        // reset to first page when filter changes
-                        onPaginationChange({ pageIndex: 0, pageSize: pagination.pageSize })
-                    }}
+                    value={localFilter}
+                    onChange={(event) => setLocalFilter(event.target.value)}
                     className="max-w-md"
                 />
             </div>
