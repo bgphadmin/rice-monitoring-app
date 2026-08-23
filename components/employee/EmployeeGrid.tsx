@@ -1,10 +1,8 @@
 ﻿import * as React from "react"
 import {
     flexRender,
-    SortingState,
     useReactTable,
     getCoreRowModel,
-    getFilteredRowModel,
     getSortedRowModel,
     getPaginationRowModel,
     createColumnHelper,
@@ -50,6 +48,10 @@ interface EmployeeGridProps {
         React.SetStateAction<{ pageIndex: number; pageSize: number }>
     >
     onRowClick?: (row: Employee) => void
+    sorting: { id: string; desc: boolean }[]
+    onSortingChange: React.Dispatch<React.SetStateAction<{ id: string; desc: boolean }[]>>
+    filter: string
+    onFilterChange: React.Dispatch<React.SetStateAction<string>>
 }
 
 export default function EmployeeGrid({
@@ -57,20 +59,22 @@ export default function EmployeeGrid({
     total,
     pagination,
     onPaginationChange,
-    onRowClick, }: EmployeeGridProps) {
-    const [sorting, setSorting] = React.useState<SortingState>([])
-    const [globalFilter, setGlobalFilter] = React.useState("")
+    sorting,
+    onSortingChange,
+    filter,
+    onFilterChange,
+    onRowClick
+}: EmployeeGridProps) {
     const table = useReactTable({
         data: employees,
         columns,
-        state: { sorting, globalFilter, pagination },
-        onSortingChange: setSorting,
-        onGlobalFilterChange: setGlobalFilter,
+        state: { sorting, pagination },
+        onSortingChange,
         onPaginationChange,
-        pageCount: Math.ceil(total / pagination.pageSize), // 👈 server-side page count
-        manualPagination: true, // 👈 tells TanStack we fetch data manually
+        pageCount: Math.ceil(total / pagination.pageSize),
+        manualPagination: true,
+        manualSorting: true,
         getCoreRowModel: getCoreRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
     })
@@ -79,9 +83,13 @@ export default function EmployeeGrid({
         <div className="space-y-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <Input
-                    placeholder="Filter distributions..."
-                    value={globalFilter}
-                    onChange={(event) => setGlobalFilter(event.target.value)}
+                    placeholder="Filter employees..."
+                    value={filter}
+                    onChange={(event) => {
+                        onFilterChange(event.target.value)
+                        // reset to first page when filter changes
+                        onPaginationChange({ pageIndex: 0, pageSize: pagination.pageSize })
+                    }}
                     className="max-w-md"
                 />
             </div>

@@ -37,21 +37,21 @@ export default function EmployeeManager({ initialRows, total }: EmployeeManagerP
     const [formValues, setFormValues] = React.useState(defaultFormState)
     const [selectedRow, setSelectedRow] = React.useState<Employee | null>(null);
     const [pagination, setPagination] = React.useState({ pageIndex: 0, pageSize: 10 })
+    const [sorting, setSorting] = React.useState<{ id: string; desc: boolean }[]>([])
+    const [filter, setFilter] = React.useState("")
 
     React.useEffect(() => {
         async function fetchPage() {
-            const { safeRows } = await getEmployeesPerPage(pagination.pageIndex, pagination.pageSize)
-            setRows(safeRows.map((record) => ({
-                id: record.id,
-                firstName: record.firstName,
-                lastName: record.lastName,
-                employeeId: record.employeeId,
-                phone: record.phone,
-                active: record.active,
-            })))
+            const { safeRows } = await getEmployeesPerPage({
+                pageIndex: pagination.pageIndex,
+                pageSize: pagination.pageSize,
+                q: filter,
+                sort: sorting,
+            })
+            setRows(safeRows)
         }
         fetchPage()
-    }, [pagination])
+    }, [pagination, sorting, filter])
 
     const handleFormChange = (
         event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -145,6 +145,10 @@ export default function EmployeeManager({ initialRows, total }: EmployeeManagerP
                 total={total}
                 pagination={pagination}
                 onPaginationChange={setPagination}
+                sorting={sorting}
+                onSortingChange={setSorting}
+                filter={filter}
+                onFilterChange={setFilter}
             />
 
             {selectedRow && (

@@ -19,7 +19,7 @@ const EmployeePage = async () => {
     if (!isSuperuser && !isAdmin) return redirect('/');
 
     // const distributions = await getDistributions()
-    const { safeRows: employees, total } = await getEmployeesPerPage(0, 10)
+    const { safeRows: employees, total } = await getEmployeesPerPage({pageIndex: 0, pageSize: 10})
 
     const rows: Employee[] = employees.map((record) => ({
         id: record.id,

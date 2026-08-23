@@ -949,14 +949,41 @@ export async function getEmployeeOptions() {
   });
 }
 
-export async function getEmployeesPerPage(pageIndex = 0, pageSize = 10) {
+export async function getEmployeesPerPage({
+  pageIndex = 0,
+  pageSize = 10,
+  q,
+  sort,
+}: {
+  pageIndex?: number
+  pageSize?: number
+  q?: string
+  sort?: { id: string; desc: boolean }[]
+}) {
+  const where: Prisma.EmployeeWhereInput = {}
+
+  if (q) {
+    where.OR = [
+      { firstName: { contains: q, mode: "insensitive" } },
+      { lastName: { contains: q, mode: "insensitive" } },
+      { employeeId: { contains: q, mode: "insensitive" } },
+      { phone: { contains: q, mode: "insensitive" } },
+    ]
+  }
+
+  const orderBy: Prisma.EmployeeOrderByWithRelationInput =
+    sort && sort.length
+      ? { [sort[0].id]: (sort[0].desc ? "desc" : "asc") as Prisma.SortOrder }
+      : { firstName: "asc" }
+
   const [rows, total] = await Promise.all([
     db.employee.findMany({
       skip: pageIndex * pageSize,
       take: pageSize,
-      orderBy: { firstName: "asc" },
+      where,
+      orderBy,
     }),
-    db.employee.count(),
+    db.employee.count({ where }),
   ])
   const safeRows = rows.map((record) => ({
     id: record.id,
@@ -966,9 +993,8 @@ export async function getEmployeesPerPage(pageIndex = 0, pageSize = 10) {
     phone: record.phone,
     active: record.active,
   }))
-  
-  return { safeRows, total };
-};
+  return { safeRows, total }
+}
 
 
 export const addEmployeeItem = async (
