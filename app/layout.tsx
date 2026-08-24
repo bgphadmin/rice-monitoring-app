@@ -9,6 +9,7 @@ import verifyUser from "@/utils/userValidation";
 import Link from "next/link";
 import { ThemeProvider } from "next-themes";
 import { ThemeToggle } from "@/components/utils/ThemeToggle";
+import SettingsMenu from "@/components/utils/SettingsMenu";
 
 export const metadata: Metadata = {
   title: "Rice Inventory App",
@@ -35,12 +36,9 @@ export default async function RootLayout({
                   <div className="hidden md:flex space-x-4">
                     <ThemeToggle />
                     <Link href="/dashboard" className="hover:text-green-600">Dashboard</Link>
-                    <Link href="/suppliers" className={isAdmin || isSuperUser ? "hover:text-green-600" : "hidden"}>Suppliers</Link>
-                    <Link href="/employees" className={isAdmin || isSuperUser ? "hover:text-green-600" : "hidden"}>Employees</Link>
-                    <Link href="/inventory" className={isAdmin || isSuperUser ? "hover:text-green-600" : "hidden"}>Inventory</Link>
                     <Link href="/distribution" className={isAdmin || isSuperUser ? "hover:text-green-600" : "hidden"}>Distribution</Link>
                     <Link href="/stockLog" className={isAdmin || isSuperUser ? "hover:text-green-600" : "hidden"}>Stock Logs</Link>
-                    <Link href="/users" className={isSuperUser ? "hover:text-green-600" : "hidden"}>Users</Link>
+                    <SettingsMenu isAdmin={isAdmin} isSuperUser={isSuperUser} />
                     <UserButton />
                   </div>
                   <div className="md:hidden" >
