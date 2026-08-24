@@ -10,7 +10,7 @@ import verifyUser from "./userValidation";
 import { ZodError } from "zod";
 import { stockLogSchema } from "./validation/stockLogSchema";
 import { SortingState } from "@tanstack/react-table";
-import { Prisma,  RiceStock,  RiceStockLog,  Supplier,  User } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { supplierSchema } from "./validation/supplierSchema";
 import { StockLog } from "./types";
 import { employeeSchema } from "./validation/employeeSchema";
@@ -286,8 +286,6 @@ export async function getDistributionsPerPage({
 
   if (q) {
     where.OR = [
-      // { firstName: { contains: q, mode: "insensitive" } },
-      // { lastName: { contains: q, mode: "insensitive" } },
       { employee: { firstName: { contains: q, mode: "insensitive" } } },
       { employee: { lastName: { contains: q, mode: "insensitive" } } },
       { rice: { name: { contains: q, mode: "insensitive" } } },

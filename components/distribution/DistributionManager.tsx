@@ -19,6 +19,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { addDistributionAction, getDistributionsPerPage } from "@/utils/actions"
 import { EditDistributionItem } from "./EditDistributionItem"
 import { SortingState } from "@tanstack/react-table"
+import Spinner from "../ui/Spinner"
 
 interface RiceOption {
     id: string
@@ -63,42 +64,45 @@ export default function DistributionManager({ initialRows, riceOptions, employee
     const [totalCount, setTotalCount] = React.useState(total)
 
     React.useEffect(() => {
-        async function fetchPage() {
-            try {
-                setLoading(true); setError(null)
-                const { safeRows, total } = await getDistributionsPerPage({
-                    pageIndex: pagination.pageIndex,
-                    pageSize: pagination.pageSize,
-                    q: globalFilter, startDate, endDate, sort: sorting,
-                })
-                setRows(safeRows.map(r => ({
-                    id: r.id,
-                    rice: { 
-                        id: r.rice.id, 
-                        name: r.rice.name 
-                    },
-                    employee: { 
-                        id: r.employee.id, 
-                        firstName: r.employee.firstname, 
-                        lastName: r.employee.lastName 
-                    },
-                    quantityKg: r.quantityKg, comment: r.comment || "",
-                    dateGiven: r.dateGiven,
-                    createdBy: { 
-                        firstName: r.createdBy.firstName, 
-                        lastName: r.createdBy.lastName 
+        const handler = setTimeout(() => {
+            async function fetchPage() {
+                try {
+                    setLoading(true); setError(null)
+                    const { safeRows, total } = await getDistributionsPerPage({
+                        pageIndex: pagination.pageIndex,
+                        pageSize: pagination.pageSize,
+                        q: globalFilter, startDate, endDate, sort: sorting,
+                    })
+                    setRows(safeRows.map(r => ({
+                        id: r.id,
+                        rice: {
+                            id: r.rice.id,
+                            name: r.rice.name
+                        },
+                        employee: {
+                            id: r.employee.id,
+                            firstName: r.employee.firstname,
+                            lastName: r.employee.lastName
+                        },
+                        quantityKg: r.quantityKg, comment: r.comment || "",
+                        dateGiven: r.dateGiven,
+                        createdBy: {
+                            firstName: r.createdBy.firstName,
+                            lastName: r.createdBy.lastName
+                        }
+                    })))
+                    setTotalCount(total)
+                } catch (err: unknown) {
+                    if (err instanceof Error) {
+                        setError(err.message)
+                    } else {
+                        setError("Unexpected error")
                     }
-                })))
-                setTotalCount(total)
-            } catch (err: unknown) {
-                if (err instanceof Error) {
-                    setError(err.message)
-                } else {
-                    setError("Unexpected error")
-                }
-            } finally { setLoading(false) }
-        }
-        fetchPage()
+                } finally { setLoading(false) }
+            }
+            fetchPage()
+        }, 3000)
+        return () => clearTimeout(handler)
     }, [pagination, globalFilter, startDate, endDate, sorting])
 
     const handleFormChange = (
@@ -217,7 +221,14 @@ export default function DistributionManager({ initialRows, riceOptions, employee
             </div>
             {/* Filter controls */}
             <div className="flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
-                <Input placeholder="Search..." value={globalFilter} onChange={e => setGlobalFilter(e.target.value)} className="max-w-md" />
+                <div className="relative">
+                    <Input placeholder="Search..." value={globalFilter} onChange={e => setGlobalFilter(e.target.value)} className="max-w-md" />
+                    {loading && (
+                        <span className="absolute right-3 top-2">
+                            <Spinner />
+                        </span>
+                    )}
+                </div>
                 <div className="flex items-center gap-2">
                     <label>From</label>
                     <Input type="date" value={startDate} onChange={e => setStartDate(e.target.value)} />
@@ -236,7 +247,6 @@ export default function DistributionManager({ initialRows, riceOptions, employee
                 sorting={sorting}
                 onSortingChange={setSorting}
             />
-            {loading && <div className="text-sm text-slate-500">Loading…</div>}
             {error && <div className="text-sm text-red-600">{error}</div>}
 
             {selectedRow && (

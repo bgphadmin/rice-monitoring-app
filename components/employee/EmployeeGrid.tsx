@@ -19,6 +19,8 @@ import {
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { Employee } from "@prisma/client"
+import Spinner from "../ui/Spinner"
+import toast from "react-hot-toast"
 
 const columnHelper = createColumnHelper<Employee>()
 
@@ -63,17 +65,42 @@ export default function EmployeeGrid({
     onSortingChange,
     filter,
     onFilterChange,
-    onRowClick
+    onRowClick,
 }: EmployeeGridProps) {
     const [localFilter, setLocalFilter] = React.useState(filter)
+    const [loadingState, setLoadingState] = React.useState(false)
+    const effectRunCount = React.useRef(0);
+
     // 🔑 Debounce: update parent filter only after 300ms pause
     React.useEffect(() => {
+        // Increment the count every time the effect tries to run
+        effectRunCount.current += 1;
+
+        // Strict Mode causes effectRunCount to hit 1 and then 2 immediately on load.
+        // If it's still part of the initial mounting cycle, block the loader.
+        if (effectRunCount.current <= 2) {
+            return;
+        }
+        setLoadingState(true)
         const handler = setTimeout(() => {
-            onFilterChange(localFilter)
-            onPaginationChange({ pageIndex: 0, pageSize: pagination.pageSize }) // reset to first page
-        }, 300)
+            try {
+                onFilterChange(localFilter)
+                onPaginationChange({ pageIndex: 0, pageSize: pagination.pageSize }) // reset to first page
+            } catch (err) {
+                if (err instanceof Error) {
+                    toast.error(err.message)
+                } else {
+                    toast.error("Something went wrong")
+                }
+            }
+            finally {
+                setLoadingState(false)
+            }
+        }, 3000)
+
         return () => clearTimeout(handler)
     }, [localFilter, onFilterChange, onPaginationChange, pagination.pageSize])
+
     const table = useReactTable({
         data: employees,
         columns,
@@ -91,15 +118,21 @@ export default function EmployeeGrid({
     return (
         <div className="space-y-4">
             {/* 🔑 Filter input with debounce */}
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <Input
-                    placeholder="Filter employees..."
-                    value={localFilter}
-                    onChange={(event) => setLocalFilter(event.target.value)}
-                    className="max-w-md"
-                />
+            <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="relative">
+                    <Input
+                        placeholder="Filter employees..."
+                        value={localFilter}
+                        onChange={(event) => setLocalFilter(event.target.value)}
+                        className="max-w-md"
+                    />
+                    {loadingState && (
+                        <span className="absolute right-3 top-2">
+                            <Spinner />
+                        </span>
+                    )}
+                </div>
             </div>
-
             <div className="overflow-auto bg-background shadow-sm">
                 <Table className="min-w-full">
                     <TableHeader>
