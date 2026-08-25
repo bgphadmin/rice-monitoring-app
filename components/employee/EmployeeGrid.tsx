@@ -97,7 +97,6 @@ export default function EmployeeGrid({
         }, 2000)
 
         return () => clearTimeout(handler)
-    // }, [localFilter, onFilterChange, onPaginationChange, pagination.pageSize, increment])
     }, [localFilter, onFilterChange, onPaginationChange, pagination.pageSize])
 
     const table = useReactTable({
