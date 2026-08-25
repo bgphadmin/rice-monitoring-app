@@ -346,7 +346,26 @@ export async function addDistributionAction(
       where: { id: validatedFields.riceId },
     });
 
-        // 🔑 Validation: prevent removing more than availables
+    // 🔑 Check employee status before creating distribution
+    const employee = await db.employee.findUnique({
+      where: { id: validatedFields.employeeId },
+    })
+
+    if (!employee) {
+      return { message: JSON.stringify([{ error: "Employee not found" }]) }
+    }
+
+    if (!employee.active) {
+      // 🚫 Employee inactive → block distribution
+      return { 
+        message: JSON.stringify([
+          { message: "Unable to distribute as " + employee.firstName + " " + employee.lastName + " is inactive" },
+          { result: "error" }
+        ])
+      };
+    }
+
+    // 🔑 Validation: prevent removing more than availables
     if ( riceRecord && validatedFields.quantityKg > riceRecord.stockKg) {
       return {
         message: JSON.stringify([
