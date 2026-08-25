@@ -20,6 +20,7 @@ import { addDistributionAction, getDistributionsPerPage } from "@/utils/actions"
 import { EditDistributionItem } from "./EditDistributionItem"
 import { SortingState } from "@tanstack/react-table"
 import Spinner from "../ui/Spinner"
+import { useEffectRunCounter } from "@/utils/hooks/customHooks"
 
 interface RiceOption {
     id: string
@@ -62,8 +63,12 @@ export default function DistributionManager({ initialRows, riceOptions, employee
     const [loading, setLoading] = React.useState(false)
     const [error, setError] = React.useState<string | null>(null)
     const [totalCount, setTotalCount] = React.useState(total)
+    const { increment } = useEffectRunCounter()
 
     React.useEffect(() => {
+        const runCount = increment();
+        // Skip first 2 runs (StrictMode double invoke)
+        if (runCount <= 2) return
         const handler = setTimeout(() => {
             async function fetchPage() {
                 try {
@@ -101,7 +106,7 @@ export default function DistributionManager({ initialRows, riceOptions, employee
                 } finally { setLoading(false) }
             }
             fetchPage()
-        }, 3000)
+        }, 2000)
         return () => clearTimeout(handler)
     }, [pagination, globalFilter, startDate, endDate, sorting])
 
@@ -115,7 +120,6 @@ export default function DistributionManager({ initialRows, riceOptions, employee
     const handleAddSuccess = (state: { message: string }) => {
         const parsed = JSON.parse(state.message)
         const distribution = parsed[2]?.distribution as DistributionRow | undefined
-        console.log('distribution: ', distribution)
         if (distribution) {
             setRows((prev) => [distribution, ...prev])
             setFormValues(defaultFormState)

@@ -69,9 +69,6 @@ export function EditDistributionItem({
     const handleSubmit = async (formData: FormData) => {
         setSaving(true);
         const result = await editDistributionAction(item.id, formData);
-
-        console.log('result: ', result);
-
         const parsedMessage = JSON.parse(result.message);
 
         if (parsedMessage.length == 3 && parsedMessage[1].result == 'success') {

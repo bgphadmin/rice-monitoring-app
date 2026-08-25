@@ -17,7 +17,6 @@ import { employeeSchema } from "./validation/employeeSchema";
 
 export const renderError = (error: unknown): { message: string } => {
   if (error instanceof ZodError) {
-    console.log("ZOD Error:", error);
     return {
       message: JSON.stringify([
         { message: "Error: " + JSON.parse(error.message)[0].message || error.message },
@@ -25,7 +24,6 @@ export const renderError = (error: unknown): { message: string } => {
       ])
     };
   } else if (error instanceof Error) {
-    console.log("Error: ", error);
     return {
       message: JSON.stringify([
         { message: "Error: " + error.message },
@@ -33,7 +31,6 @@ export const renderError = (error: unknown): { message: string } => {
       ])
     };
   } else {
-    console.log("Error:", error);
     return {
       message: JSON.stringify([
         { message: "Something went wrong." },
@@ -876,7 +873,6 @@ export const addSupplierItem = async (
 };
 
 export async function editSupplierItemAction(id: string, formData: FormData): Promise<{ message: string }> {
-  const { userId } = auth();
   try {
     const rawData = Object.fromEntries(formData);
     const validatedFields = supplierSchema.parse(rawData);
@@ -1032,7 +1028,6 @@ export const addEmployeeItem = async (
 };
 
 export async function editEmployeeItemAction(id: string, formData: FormData): Promise<{ message: string }> {
-  const { userId } = auth();
   try {
     const rawData = Object.fromEntries(formData);
     const validatedFields = employeeSchema.parse(rawData);

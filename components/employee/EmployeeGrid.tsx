@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils"
 import { Employee } from "@prisma/client"
 import Spinner from "../ui/Spinner"
 import toast from "react-hot-toast"
+import { useEffectRunCounter } from "@/utils/hooks/customHooks"
 
 const columnHelper = createColumnHelper<Employee>()
 
@@ -69,18 +70,15 @@ export default function EmployeeGrid({
 }: EmployeeGridProps) {
     const [localFilter, setLocalFilter] = React.useState(filter)
     const [loadingState, setLoadingState] = React.useState(false)
-    const effectRunCount = React.useRef(0);
+    const { increment } = useEffectRunCounter()
 
     // 🔑 Debounce: update parent filter only after 300ms pause
     React.useEffect(() => {
-        // Increment the count every time the effect tries to run
-        effectRunCount.current += 1;
+        const runCount = increment();
 
-        // Strict Mode causes effectRunCount to hit 1 and then 2 immediately on load.
-        // If it's still part of the initial mounting cycle, block the loader.
-        if (effectRunCount.current <= 2) {
-            return;
-        }
+        // Skip first 2 runs (StrictMode double invoke)
+        if (runCount <= 2) return
+
         setLoadingState(true)
         const handler = setTimeout(() => {
             try {
@@ -96,10 +94,10 @@ export default function EmployeeGrid({
             finally {
                 setLoadingState(false)
             }
-        }, 3000)
+        }, 2000)
 
         return () => clearTimeout(handler)
-    }, [localFilter, onFilterChange, onPaginationChange, pagination.pageSize])
+    }, [localFilter, onFilterChange, onPaginationChange, pagination.pageSize, increment])
 
     const table = useReactTable({
         data: employees,
