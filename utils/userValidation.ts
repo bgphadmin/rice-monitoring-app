@@ -11,6 +11,7 @@ type ROLE = "USER" | "ADMIN" | "SUPERUSER";
 
 export default async function verifyUser(user: ROLE): Promise<boolean> {
   const { userId } = auth();
+  console.log("userId: ", userId);
   let role: string | null = null;
   if (userId) {
     const currentUser = await db.user.findUnique({
@@ -18,6 +19,7 @@ export default async function verifyUser(user: ROLE): Promise<boolean> {
     });
     role = currentUser?.role ?? null;
   }
+  console.log("role: ", role);
   const isSuper = role === user;
   return isSuper;
 }

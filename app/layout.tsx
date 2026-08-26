@@ -12,9 +12,15 @@ import { ThemeToggle } from "@/components/utils/ThemeToggle";
 import SettingsMenu from "@/components/utils/SettingsMenu";
 
 export const metadata: Metadata = {
-  title: "Rice Inventory App",
-  description: "Manage rice stock, distributions, and benefits",
+  title: "Rice Distribution Manager",
+  description: "Manage rice stock and distributions",
+  manifest: "/manifest.json",
 };
+
+export const viewport = {
+  themeColor: "#334155", // ✅ move here
+  backgroundColor: "#f5f5dc", // optional splash background
+}
 
 export default async function RootLayout({
   children,
