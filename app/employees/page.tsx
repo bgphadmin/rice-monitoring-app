@@ -15,7 +15,6 @@ const EmployeeManager = dynamic(
 
 const EmployeePage = async () => {
     const isSuperuser = await verifyUser("SUPERUSER");
-    console.log("isSuperuser: ", isSuperuser)
     const isAdmin = await verifyUser("ADMIN");
     if (!isSuperuser && !isAdmin) return redirect('/');
 

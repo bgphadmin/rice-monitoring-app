@@ -97,6 +97,7 @@ export default function EmployeeGrid({
         }, 2000)
 
         return () => clearTimeout(handler)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [localFilter, onFilterChange, onPaginationChange, pagination.pageSize])
 
     const table = useReactTable({

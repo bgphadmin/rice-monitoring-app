@@ -108,6 +108,7 @@ export default function DistributionManager({ initialRows, riceOptions, employee
             fetchPage()
         }, 2000)
         return () => clearTimeout(handler)
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [pagination, globalFilter, startDate, endDate, sorting])
 
     const handleFormChange = (

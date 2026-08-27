@@ -16,8 +16,6 @@ async function main() {
     data: employees,
     skipDuplicates: true,
   });
-
-  console.log("✅ Seeded 50 employees with realistic names and phone numbers");
 }
 
 main()

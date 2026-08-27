@@ -51,6 +51,13 @@ export default function SettingsMenu({ isAdmin, isSuperUser }: SettingsMenuProps
                         Employees
                     </Link>
                     <Link
+                        href="/scanner"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        onClick={() => setOpen(false)}
+                    >
+                        Scanner
+                    </Link>
+                    <Link
                         href="/suppliers"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setOpen(false)}

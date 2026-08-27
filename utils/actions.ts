@@ -425,6 +425,74 @@ export async function addDistributionAction(
   }
 }
 
+export async function addDistributionFromScannerAction(data: {
+  employeeId: string
+  riceId: string
+  quantityKg: number
+  comment?: string | null
+}): Promise<{ message: string; result: string }> {
+  const { userId } = auth()
+
+  try {
+    // ✅ Check rice stock
+    const riceRecord = await db.riceStock.findUnique({
+      where: { id: data.riceId },
+    })
+
+    if (!riceRecord) {
+      return { message: "Rice variety not found", result: "error" }
+    }
+    if (data.quantityKg > riceRecord.stockKg) {
+      return {
+        message: `Insufficient stock (${riceRecord.name}): Available ${riceRecord.stockKg} kg`,
+        result: "error",
+      }
+    }
+
+    // ✅ Check employee status
+    const employee = await db.employee.findUnique({
+      where: { id: data.employeeId },
+    })
+
+    if (!employee) {
+      return { message: "Employee not found", result: "error" }
+    }
+    if (!employee.active) {
+      return {
+        message: `Unable to distribute: ${employee.firstName} ${employee.lastName} is inactive`,
+        result: "error",
+      }
+    }
+
+    // ✅ Transaction: create distribution + update stock
+    await db.$transaction(async (tx) => {
+      await tx.employeeDistribution.create({
+        data: {
+          employeeId: data.employeeId,
+          riceId: data.riceId,
+          quantityKg: data.quantityKg,
+          comment: data.comment,
+          dateGiven: new Date(), // always now for scanner
+          createdById: userId || "",
+        },
+      })
+
+      await tx.riceStock.update({
+        where: { id: data.riceId },
+        data: {
+          stockKg: { decrement: data.quantityKg },
+        },
+      })
+    })
+
+    revalidatePath("/distribution")
+    return { message: "Distribution added successfully", result: "success" }
+  } catch (error) {
+    console.error("Scanner distribution error:", error)
+    return { message: "Unexpected error occurred", result: "error" }
+  }
+}
+
 export async function editDistributionAction(id: string, formData: FormData): Promise<{ message: string }> {
   const { userId } = auth();
   try {
