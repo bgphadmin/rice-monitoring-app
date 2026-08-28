@@ -51,7 +51,7 @@ export default function ScannerManager({ riceOptions: riceOptions }: { riceOptio
 
     return (
         <div className="flex items-start justify-center min-h-screen pt-20">
-            <div className="space-y-6 w-96">
+            <div className="space-y-6 w-96 border rounded-lg p-6 bg-[#F5F5DC]">
                 <div className="flex flex-col space-y-2">
                     <label htmlFor="rice" className="font-semibold">Rice</label>
                     <select
