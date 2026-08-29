@@ -21,7 +21,7 @@ export default function ScannerManager({ riceOptions: riceOptions }: { riceOptio
                     comment: null,
                     dateGiven: new Date(),
                 }
-                if (payload.quantityKg > 0) {}
+                if (payload.quantityKg > 0) { }
             } else {
                 buffer.push(e.key)
             }
@@ -30,6 +30,24 @@ export default function ScannerManager({ riceOptions: riceOptions }: { riceOptio
         window.addEventListener("keydown", handler)
         return () => window.removeEventListener("keydown", handler)
     }, [riceId, quantityKg]) // ✅ only depend on state you read
+
+    // const inputRef = useRef<HTMLInputElement>(null)
+    // useEffect(() => {
+    //     // Focus once on mount
+    //     inputRef.current?.focus()
+
+    //     // Keep focus if user clicks elsewhere
+    //     const keepFocus = () => {
+    //         if (inputRef.current) inputRef.current.focus()
+    //     }
+    //     window.addEventListener("blur", keepFocus)
+    //     document.addEventListener("click", keepFocus)
+
+    //     return () => {
+    //         window.removeEventListener("blur", keepFocus)
+    //         document.removeEventListener("click", keepFocus)
+    //     }
+    // }, [])
 
     const handleScan = async (employeeId: string) => {
         const payload = {
@@ -80,15 +98,17 @@ export default function ScannerManager({ riceOptions: riceOptions }: { riceOptio
 
                 {/* Hidden input for QR scanner device */}
                 <input
+                    // ref={inputRef}
                     type="text"
                     onKeyDown={(e) => {
-                        if (e.key === "Enter") {
+                        if (e.key === "Enter" || e.key === "keypress Down") {
                             handleScan((e.target as HTMLInputElement).value)
                                 ; (e.target as HTMLInputElement).value = ""
                         }
                     }}
                     autoFocus
-                    className="hidden"
+                    placeholder="Focus on this input..."
+                    className="flex flex-col space-y-2"
                 />
             </div>
         </div>

@@ -486,7 +486,7 @@ export async function addDistributionFromScannerAction(data: {
     })
 
     revalidatePath("/distribution")
-    return { message: "Distribution added successfully", result: "success" }
+    return { message: "Distribution to " + employee.firstName + " " + employee.lastName + " is added successfully", result: "success" }
   } catch (error) {
     console.error("Scanner distribution error:", error)
     return { message: "Unexpected error occurred", result: "error" }
